@@ -1,0 +1,138 @@
+/* Home Page CSS */
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #ddd;
+}
+
+.header h1 {
+    margin: 0;
+}
+
+.logout {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.logout-icon {
+    width: 30px;
+    height: 30px;
+}
+
+.form-container {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px;
+}
+
+.form-box {
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 45%;
+}
+
+.form-box h2 {
+    margin-top: 0;
+}
+
+.images-scrollbox {
+  max-height: 300px;
+  overflow-y: auto;
+  width: 100%; /* aggiungi questa proprietà */
+  margin-bottom: 10px;
+  display: block; /* aggiungi questa proprietà */
+}
+
+.images-scrollbox::-webkit-scrollbar {
+    width: 10px; /* Scrollbar width */
+    background-color: #f5f5f5; /* Scrollbar background color */
+}
+
+.images-scrollbox::-webkit-scrollbar-thumb {
+    background-color: var(--normal-gossamer); /* Scrollbar thumb color */
+    border-radius: 10px; /* Rounded scrollbar thumb */
+}
+
+.images-scrollbox::-webkit-scrollbar-track {
+    background-color: #f5f5f5; /* Scrollbar track background color */
+    border-radius: 10px; /* Rounded scrollbar track */
+}
+
+.image-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.image-checkbox {
+    margin-right: 10px;
+}
+
+.image-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.image-title {
+    font-weight: bold;
+}
+
+.image-id {
+    font-size: 0.8em;
+    color: gray;
+}
+
+.user-albums, .others-albums {
+    margin: 20px;
+}
+
+.album-container-home {
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.album {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.album a {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+}
+
+.album-icon {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+}
+
+.album-title {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.album-user {
+    font-size: 0.9em;
+    color: gray;
+    margin-left: 10px;
+}
+
+.no-albums {
+    text-align: center;
+    color: gray;
+}
