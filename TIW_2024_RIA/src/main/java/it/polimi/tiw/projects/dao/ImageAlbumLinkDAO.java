@@ -19,30 +19,56 @@ public class ImageAlbumLinkDAO {
 	}
 	
 	public void addImageToAlbum(int albumId, int imageId) throws SQLException {
-		String performedAction = " adding the image to the album ";
-		String query = "INSERT into ImageAlbumLink (albumId, imageId) VALUES(?, ?)";
-		PreparedStatement preparedStatement = null;
+	    String performedAction = " adding the image to the album ";
+	    String getLatestOrderedQuery = "SELECT MAX(chosenOrder) FROM ImageAlbumLink WHERE albumId = ?";
+	    String insertQuery = "INSERT into ImageAlbumLink (albumId, imageId, chosenOrder) VALUES(?, ?, ?)";
+	    PreparedStatement getMaxChosenOrderStmt = null;
+	    PreparedStatement insertStmt = null;
+	    ResultSet resultSet = null;
 
-		try {
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setInt(1, albumId);
-			preparedStatement.setInt(2, imageId);
-			preparedStatement.executeUpdate();
+	    try {
+	        // Get the maximum chosenOrder value for the given albumId
+	        getMaxChosenOrderStmt = connection.prepareStatement(getLatestOrderedQuery);
+	        getMaxChosenOrderStmt.setInt(1, albumId);
+	        resultSet = getMaxChosenOrderStmt.executeQuery();
+	        
+	        int maxChosenOrder = 0;
+	        if (resultSet.next()) {
+	            maxChosenOrder = resultSet.getInt(1);
+	        }
 
-		} catch (SQLException e) {
-			throw new SQLException("Error accessing the DB when" + performedAction + "[ " + e.getMessage() + " ]");
+	        // Insert the new record with the incremented chosenOrder value
+	        insertStmt = connection.prepareStatement(insertQuery);
+	        insertStmt.setInt(1, albumId);
+	        insertStmt.setInt(2, imageId);
+	        insertStmt.setInt(3, maxChosenOrder + 1);
+	        insertStmt.executeUpdate();
 
-		} finally {
+	    } catch (SQLException e) {
+	        throw new SQLException("Error accessing the DB when" + performedAction + "[ " + e.getMessage() + " ]");
 
-			try {
-				preparedStatement.close();
+	    } finally {
 
-			} catch (Exception e) {
-				throw new SQLException("Error closing the statement when" + performedAction + "[ " + e.getMessage() + " ]");
-			}
-		}
-
+	    	try {
+            	resultSet.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error closing the ResultSet when" + performedAction + "[ " + e.getMessage() + " ]");
+            }
+	    	
+            try {
+                getMaxChosenOrderStmt.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error closing the statement when" + performedAction + "[ " + e.getMessage() + " ]");
+            }
+	            
+            try {
+                insertStmt.close();
+            } catch (SQLException e) {
+                throw new SQLException("Error closing the statement when" + performedAction + "[ " + e.getMessage() + " ]");
+            }
+	    }
 	}
+
 	
 	public void deleteImageFromAllAlbums(int imageId) throws SQLException {
 		String performedAction = " removing all istances of 'imageId' from all albums where present ";
