@@ -1,14 +1,21 @@
 package it.polimi.tiw.projects.controllers;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonReader;
+import javax.json.JsonString;
+import javax.json.JsonValue;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -17,11 +24,13 @@ import javax.servlet.http.HttpServletResponse;
 import it.polimi.tiw.projects.beans.Image;
 import it.polimi.tiw.projects.dao.ImageAlbumLinkDAO;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
+import it.polimi.tiw.projects.utils.TupleOfInteger;
 
 /**
  * Servlet implementation class UpdateImageOrder
  */
 @WebServlet("/UpdateImageOrder")
+@MultipartConfig
 public class UpdateImageOrder extends HttpServlet {
 	private static final long serialVersionUID = 1L;
     private Connection connection;
@@ -62,8 +71,9 @@ public class UpdateImageOrder extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String albumIdString = request.getParameter("albumId");
-		String newImageOrderJson = request.getParameter("orderedList");
+		String newImageOrderJson = request.getParameter("orderedIds");
         List<Integer> newImageOrder = new ArrayList<>();
+        List<TupleOfInteger> listOfInfoImage = new ArrayList<>();
         int albumId;
 
         if (albumIdString == null || albumIdString.isEmpty()) {
@@ -78,21 +88,63 @@ public class UpdateImageOrder extends HttpServlet {
             return;
         }
         
+        System.out.println(newImageOrderJson);
+        
         if (parsingChecker(request, response, albumIdString).isPresent())			albumId = parsingChecker(request, response, albumIdString).get();
 		else	return;
         
-		String[] selectedImagesArray = newImageOrderJson.split(",");
-        for (String imageIdString : selectedImagesArray) {
-            imageIdString = imageIdString.trim();
-            Optional<Integer> parsedImageId = parsingChecker(request, response, imageIdString);
-            
-            if (!parsedImageId.isPresent())		return;
-            
-            newImageOrder.add(parsedImageId.get());
+        if (albumId < 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().println("The insert id for the album is not valid!");
+            return;
         }
         
-		ImageAlbumLinkDAO imageAlbumLinkDAO = new ImageAlbumLinkDAO(connection);
-		
+        //Reading and extracting data from the JSON array
+        try (StringReader stringReader = new StringReader(newImageOrderJson);
+             JsonReader jsonReader = Json.createReader(stringReader)) {
+
+            //Reading the array
+            JsonArray jsonArray = jsonReader.readArray();
+
+            int i = 1;
+            for (JsonValue jsonValue : jsonArray) {
+                String imageIdString = ((JsonString) jsonValue).getString();
+
+                //Parsing the string found
+                Optional<Integer> parsedImageId = parsingChecker(request, response, imageIdString);
+                if (!parsedImageId.isPresent()) {
+                    return;
+                }
+            	
+                TupleOfInteger tupleOfInteger = new TupleOfInteger(parsedImageId.get(), i);
+                listOfInfoImage.add(tupleOfInteger);
+                i++;
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().println("Error while extracting the creation dates of the images: " + e.getMessage());
+            return;
+        }
+        
+        for (TupleOfInteger x : listOfInfoImage) {
+        	System.out.println("id: " + x.getKey() + "oder: " + x.getValue());
+        }
+        
+        ImageAlbumLinkDAO imageAlbumLinkDAO = new ImageAlbumLinkDAO(connection);
+        try {
+        	imageAlbumLinkDAO.updateImageOrder(albumId, listOfInfoImage);
+        	
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().println("Error while updating the images' order in the album: " + e.getMessage());
+            return;
+        }
+        
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.getWriter().println("Order update successfully!");
+
 	}
 	
 	private Optional<Integer> parsingChecker(HttpServletRequest request, HttpServletResponse response,
