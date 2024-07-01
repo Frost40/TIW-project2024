@@ -10,6 +10,7 @@ import java.util.List;
 
 import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.utils.Message;
+import it.polimi.tiw.projects.utils.TupleOfInteger;
 
 public class AlbumDAO {
 	private Connection connection;
@@ -266,54 +267,63 @@ public class AlbumDAO {
 		}
 	}
 	
-	public void createAlbumWithImages(String title, int creatorId, List<Integer> imagesIds) throws SQLException  {
-		int albumId;
-		String performedAction = " creating a new album with images already in it ";
-        String createAlbumQuery = "INSERT INTO Album (title, creationDate, userId) VALUES (?, NOW(), ?)";
-        String linkImageToAlbumQuery = "INSERT INTO ImageAlbumLink (albumId, imageId) VALUES (?, ?)";
-        PreparedStatement createAlbumStmt = null;
-        PreparedStatement linkImageStmt = null;
-		ResultSet resultSet = null;
-        
-		try {
-            connection.setAutoCommit(false);		//Disabling auto commit
+	public void createAlbumWithImages(String title, int creatorId, List<TupleOfInteger> imageOrders) throws SQLException {
+	    int albumId;
+	    String performedAction = " creating a new album with images already in it ";
+	    String createAlbumQuery = "INSERT INTO Album (title, creationDate, userId) VALUES (?, NOW(), ?)";
+	    String linkImageToAlbumQuery = "INSERT INTO ImageAlbumLink (albumId, imageId, chosenOrder) VALUES (?, ?, ?)";
+	    PreparedStatement createAlbumStmt = null;
+	    PreparedStatement linkImageStmt = null;
+	    ResultSet resultSet = null;
 
-			createAlbumStmt = connection.prepareStatement(createAlbumQuery, Statement.RETURN_GENERATED_KEYS);
-			createAlbumStmt.setString(1, title);
-			createAlbumStmt.setInt(2, creatorId);
-			createAlbumStmt.executeUpdate();
-			
-			resultSet = createAlbumStmt.getGeneratedKeys();
-			
-			if (resultSet.next()) {
-				albumId =  resultSet.getInt(1);
+	    try {
+	        connection.setAutoCommit(false); // Disabling auto commit
+
+	        createAlbumStmt = connection.prepareStatement(createAlbumQuery, Statement.RETURN_GENERATED_KEYS);
+	        createAlbumStmt.setString(1, title);
+	        createAlbumStmt.setInt(2, creatorId);
+	        createAlbumStmt.executeUpdate();
+
+	        resultSet = createAlbumStmt.getGeneratedKeys();
+
+	        if (resultSet.next()) {
+	            albumId = resultSet.getInt(1);
 	        } else {
 	            throw new SQLException("No generated key was returned after inserting a new user into the database.");
 	        }
-			//Linking each image with the album just created
-			linkImageStmt = connection.prepareStatement(linkImageToAlbumQuery);
-            for (int imageId : imagesIds) {
-                linkImageStmt.setInt(1, albumId);
-                linkImageStmt.setInt(2, imageId);
-                linkImageStmt.executeUpdate();
-            }
 
-            connection.commit();		//Manual commit
+	        // Linking each image with the album just created
+	        linkImageStmt = connection.prepareStatement(linkImageToAlbumQuery);
+	        for (TupleOfInteger imageData : imageOrders) {
+	            int imageId = imageData.getKey();
+	            int chosenOrder = imageData.getValue();
 
-		} catch (SQLException e) {
-			connection.rollback();		// If an SQLException is raised a roll-back to the last commit is needed
-			throw new SQLException("Error accessing the DB when" + performedAction + "[ "+ e.getMessage() + " ]");
+	            linkImageStmt.setInt(1, albumId);
+	            linkImageStmt.setInt(2, imageId);
+	            linkImageStmt.setInt(3, chosenOrder);
+	            linkImageStmt.executeUpdate();
+	        }
 
-		} finally {
-			connection.setAutoCommit(true);		//Re-activating auto commit
+	        connection.commit(); // Manual commit
 
-			try {
-				createAlbumStmt.close();
-				linkImageStmt.close();
+	    } catch (SQLException e) {
+	        connection.rollback(); // If an SQLException is raised a roll-back to the last commit is needed
+	        throw new SQLException("Error accessing the DB when" + performedAction + "[ " + e.getMessage() + " ]");
 
-			} catch (Exception e) {
-				throw new SQLException("Error closing the statement when" + performedAction + "[ " + e.getMessage() + " ]");
-			}
-		}
+	    } finally {
+	        connection.setAutoCommit(true); // Re-activating auto commit
+
+	        try {
+	            if (createAlbumStmt != null) {
+	                createAlbumStmt.close();
+	            }
+	            if (linkImageStmt != null) {
+	                linkImageStmt.close();
+	            }
+
+	        } catch (Exception e) {
+	            throw new SQLException("Error closing the statement when" + performedAction + "[ " + e.getMessage() + " ]");
+	        }
+	    }
 	}
 }

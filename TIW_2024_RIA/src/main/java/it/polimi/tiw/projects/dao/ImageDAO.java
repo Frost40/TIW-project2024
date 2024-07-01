@@ -1,14 +1,17 @@
 package it.polimi.tiw.projects.dao;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 import it.polimi.tiw.projects.beans.Image;
+import it.polimi.tiw.projects.utils.TupleOfInteger;
 
 public class ImageDAO {
 	private Connection connection;
@@ -113,6 +116,54 @@ public class ImageDAO {
 	    
 	    return images;
 	}
+	
+	public List<TupleOfInteger> getCreationDates(List<TupleOfInteger> listOfInfoImage) throws SQLException {
+        List<TupleOfInteger> listToReturn = new ArrayList<>();
+        String performedAction = " getting creation dates for images ";
+        String query = "SELECT creationDate FROM Image WHERE id = ?";
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            preparedStatement = connection.prepareStatement(query);
+            
+            for (TupleOfInteger tuple : listOfInfoImage) {
+                int imageId = tuple.getKey();
+                preparedStatement.setInt(1, imageId);
+                
+                resultSet = preparedStatement.executeQuery();
+
+                if (resultSet.next()) {
+                	Timestamp creationTimestamp = resultSet.getTimestamp("creationDate");
+                    long creationDateMillis = creationTimestamp.getTime();
+                    tuple.setValueLong(creationDateMillis);
+                    listToReturn.add(tuple);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new SQLException("Error accessing the DB when" + performedAction + "[ " + e.getMessage() + " ]");
+
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (Exception e) {
+                    throw new SQLException("Error closing the result set when" + performedAction + "[ " + e.getMessage() + " ]");
+                }
+            }
+
+            if (preparedStatement != null) {
+                try {
+                    preparedStatement.close();
+                } catch (Exception e) {
+                    throw new SQLException("Error closing the statement when" + performedAction + "[ " + e.getMessage() + " ]");
+                }
+            }
+        }
+
+        return listToReturn;
+    }
 	
 	public int uploadImage(String title, String description, String path, int creatorid) throws SQLException  {
 		int generatedId = 0;

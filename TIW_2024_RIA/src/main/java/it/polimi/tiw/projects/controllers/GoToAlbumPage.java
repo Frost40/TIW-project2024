@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Image;
 import it.polimi.tiw.projects.dao.AlbumDAO;
+import it.polimi.tiw.projects.dao.ImageAlbumLinkDAO;
 import it.polimi.tiw.projects.dao.ImageDAO;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.Message;
@@ -99,7 +100,7 @@ public class GoToAlbumPage extends HttpServlet {
 			return;
 		}
 		
-		//Getting all album's creator username using "albumID"
+		//Getting album's username creator and title using "albumID"
 		Message returnedMessage;
 		try {
 			returnedMessage = albumDAO.getUsernameCreatorAndTitle(albumId);
@@ -112,18 +113,23 @@ public class GoToAlbumPage extends HttpServlet {
 		}
 
 		//Getting images in 'albumId'
-		ImageDAO imageDAO = new ImageDAO(connection);
-		List<Image> images = null;
-		
-		try {
-			images = imageDAO.getImagesByAlbumId(albumId);
-			
+		ImageAlbumLinkDAO imageAlbumLinkDAO = new ImageAlbumLinkDAO(connection);
+        List<Image> images = null;
+        try {
+        	images = imageAlbumLinkDAO.getImagesInOrder(albumId);
+        	
 		//If an error occurred during the process the user is redirected to errorPage
-		} catch (SQLException e) {
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			response.getWriter().println(e.getMessage());
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().println("Error while creating album: " + e.getMessage());
+            return;
+        }
+        
+        if(images == null || images.isEmpty()) {
+        	response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().println("The id provided for the album is incorrect or the album does not exist!");
 			return;
-		}
+        }
 		
 		// JSON serialization
 		response.setStatus(HttpServletResponse.SC_OK);

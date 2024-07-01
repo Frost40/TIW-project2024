@@ -60,3 +60,15 @@
 .navigation-buttons button:hover {
     background-color: #0056b3;
 }
+
+/* Drag-and-Drop CSS */
+.title-item.dragging {
+    opacity: 0.5;
+}
+
+.title-item-placeholder {
+    height: 2px;
+    background-color: var(--dark-gossamer);
+    margin: 4px 0;
+    width: 100%;
+}

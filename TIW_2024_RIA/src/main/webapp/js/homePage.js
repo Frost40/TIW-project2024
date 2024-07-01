@@ -1,4 +1,3 @@
-// Funzione HomePage
 function HomePage(user, pageOrchestrator) {
     // Inizializzazione degli elementi
     var self = this;
@@ -7,7 +6,6 @@ function HomePage(user, pageOrchestrator) {
     // Elementi generali
     let homePageDiv = document.getElementById("homePageDiv");
     let logoutButton = document.getElementById("logoutButtonHome");
-    let uploadWarning = document.getElementById("uploadWarning");
     let usernameSpan = document.getElementById("username");
     
     let myAlbumsContainer = document.getElementById("myAlbumsContainer");
@@ -16,7 +14,6 @@ function HomePage(user, pageOrchestrator) {
     
     let uploadImageForm = document.getElementById("uploadImageForm");
     let createAlbumForm = document.getElementById("createAlbumForm");
-    let albumCreationWarning = document.getElementById("albumCreationWarning");
 
     // Setting correct username in the title "h1"
     usernameSpan.textContent = user.username;
@@ -231,63 +228,74 @@ function HomePage(user, pageOrchestrator) {
     }
         
     // Funzione per creare l'album
-    function createAlbum(form) {
-	    var selectedImages = [];
-	    var checkboxes = allUserImagesContainer.querySelectorAll('input[type="checkbox"]');
-	    for (var i = 0; i < checkboxes.length; i++) {
-	        if (checkboxes[i].checked) {
-	            selectedImages.push(checkboxes[i].value);
-	        }
-	    }
-	
-	    // Creare un form virtuale
-	    var virtualForm = document.createElement("form");
-	    // Aggiungere tutti gli input dal form originale al form virtuale
-	    for (var i = 0; i < form.elements.length; i++) {
-	        var field = form.elements[i];
-	        if (field.name && field.value) {
-	            var input = document.createElement("input");
-	            input.type = "hidden";
-	            input.name = field.name;
-	            input.value = field.value;
-	            virtualForm.appendChild(input);
-	        }
-	    }
-	    // Aggiungere selectedImages come campo nascosto
-	    var selectedImagesInput = document.createElement("input");
-	    selectedImagesInput.type = "hidden";
-	    selectedImagesInput.name = "selectedImages";
-	    selectedImagesInput.value = JSON.stringify(selectedImages);
-	    virtualForm.appendChild(selectedImagesInput);
-	
-	    makeCall("POST", 'CreateNewAlbum', virtualForm, function(x) {
-	        if (x.readyState === XMLHttpRequest.DONE) {
-	            var message = x.responseText;
-	            switch (x.status) {
-	                case 200:
-	                    form.reset();
-	                    showSuccessAlert(message);
-	                    break;
-	
-	                case 400: // bad request
-	                    showErrorAlert(message);
-	                    break;
-	
-	                case 401: // unauthorized
-	                    showErrorAlert(message);
-	                    break;
-	
-	                case 500: // server error
-	                    showErrorAlert(message);
-	                    break;
-	
-	                default:
-	                    pageOrchestrator.showError(message);
-	                    break;
-	            }
-	        }
-	    });
-	}
+function createAlbum(form) {
+    var selectedImages = [];
+    var checkboxes = allUserImagesContainer.querySelectorAll('input[type="checkbox"]');
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+            selectedImages.push(checkboxes[i].value);
+            console.log(checkboxes[i].value);
+        }
+    }
+
+    // Creare un form virtuale
+    var virtualForm = document.createElement("form");
+    // Aggiungere tutti gli input dal form originale al form virtuale
+    for (var i = 0; i < form.elements.length; i++) {
+        var field = form.elements[i];
+        if (field.name && field.value) {
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = field.name;
+            input.value = field.value;
+            virtualForm.appendChild(input);
+        }
+    }
+
+    // Rimuovere gli input esistenti 'selectedImages' dal form virtuale
+    var existingSelectedImagesInputs = virtualForm.querySelectorAll('input[name="selectedImages"]');
+    existingSelectedImagesInputs.forEach(function(input) {
+        virtualForm.removeChild(input);
+    });
+
+    // Aggiungere selectedImages come campo nascosto
+    var selectedImagesInput = document.createElement("input");
+    selectedImagesInput.type = "hidden";
+    selectedImagesInput.name = "selectedImages";
+    selectedImagesInput.value = JSON.stringify(selectedImages);
+    virtualForm.appendChild(selectedImagesInput);
+    
+    console.log(virtualForm);
+
+    makeCall("POST", 'CreateNewAlbum', virtualForm, function(x) {
+        if (x.readyState === XMLHttpRequest.DONE) {
+            var message = x.responseText;
+            switch (x.status) {
+                case 200:
+                    form.reset();
+                    showSuccessAlert(message);
+                    break;
+
+                case 400: // bad request
+                    showErrorAlert(message);
+                    break;
+
+                case 401: // unauthorized
+                    showErrorAlert(message);
+                    break;
+
+                case 500: // server error
+                    showErrorAlert(message);
+                    break;
+
+                default:
+                    pageOrchestrator.showError(message);
+                    break;
+            }
+        }
+    });
+}
+
 
     // Funzione per nascondere la pagina
     this.hide = function() {
