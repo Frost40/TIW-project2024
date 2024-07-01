@@ -88,49 +88,45 @@
         </div>
     </div>
 
-    <!-- Image Page Content -->
-    <div id="imagePage" class="section" style="display:none;">
-        <div class="header-div">
-            <h1 id="imageTitle" class="header-title"></h1>
-            <div class="header-icons">
-                <a class="header-icon" href="#" onclick="pageOrchestrator.showSection('homePage')">
-                    <img src="Icons/home.png" alt="Home Page">
-                </a>
-                <a class="header-icon" href="#" id="backToAlbum" onclick="pageOrchestrator.showSection('albumPage')">
-                    <img src="Icons/goToAlbum.png" alt="Album Page">
-                </a>
-            </div>
-        </div>
+   <!-- Modal for Image Page -->
+	<div id="imageModal" class="modal" style="display:none;">
+	    <div id="imageModalContent" class="modal-content">
+	        <!-- Image Page Content -->
+	        <div id="imagePageDiv" class="section">
+	            <div class="content">
+	                <div class="image-container gossamer-div">
+	                    <img id="fullImage" alt="Image" class="full-image">
+	                </div>
+	
+	                <div class="side-container">
+	                    <div class="info-container gossamer-div">
+	                        <h2 id="imageTitleHeader"></h2>
+	                        <p id="imageCreationDate"></p>
+	                        <p id="imageDescription"></p>
+	                        <form id="deleteImageForm" class="delete-form" method="post" style="display:none;">
+	                            <input type="hidden" name="imageId" />
+	                            <button type="submit" class="btn btn-gossamer btn-medium">Delete Image</button>
+	                        </form>           
+	                    </div>
+	
+	                    <div class="comments-container gossamer-div">
+	                        <h3>Comments</h3>
+	                        <div id="commentsWrapper" class="comments-wrapper"></div>
+	                        <div class="comment-form">
+	                            <form id="addCommentForm" method="post">
+	                                <input type="hidden" name="imageId" />
+	                                <textarea name="comment" rows="3" maxlength="150" placeholder="Add a comment"></textarea>
+	                                <button type="submit" class="btn btn-gossamer btn-medium">Send</button>
+	                            </form>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
 
-        <div class="content">
-            <div class="image-container gossamer-div">
-                <img id="fullImage" alt="Image" class="full-image">
-            </div>
-            
-            <div class="side-container">
-                <div class="info-container gossamer-div">
-                    <h2 id="imageTitleHeader"></h2>
-                    <p id="imageCreationDate"></p>
-                    <p id="imageDescription"></p>
-                    <form id="deleteImageForm" class="delete-form" method="post" style="display:none;">
-                        <input type="hidden" name="imageId" />
-                        <button type="submit" class="btn btn-gossamer btn-medium">Delete Image</button>
-                    </form>           
-                </div>
-                
-                <div class="comments-container gossamer-div">
-                    <h3>Comments</h3>
-                    <div id="commentsWrapper" class="comments-wrapper"></div>
-                    <div class="comment-form">
-                        <form id="addCommentForm" method="post">
-                            <input type="hidden" name="imageId" />
-                            <textarea name="comment" rows="3" maxlength="150" placeholder="Add a comment"></textarea>
-                            <button type="submit" class="btn btn-gossamer btn-medium">Send</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
+    
 </body>
 </html>

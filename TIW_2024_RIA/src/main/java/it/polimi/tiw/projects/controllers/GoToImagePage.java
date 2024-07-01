@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -14,6 +15,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import it.polimi.tiw.projects.beans.Image;
 import it.polimi.tiw.projects.beans.User;
@@ -62,39 +66,35 @@ public class GoToImagePage extends HttpServlet {
 		HttpSession session = request.getSession();
 		User currentUser    = (User)session.getAttribute("currentUser");
 		
-		String albumIdString = request.getParameter("albumId");
 		String imageIdString = request.getParameter("imageId");
-		int albumId;
 		int imageId;
 		
-		if(albumIdString == null) {
-			request.setAttribute("error", "Null albumId!");
-			return;
-		}
-		
 		if(imageIdString == null) {
-			request.setAttribute("error", "Null imageId!");
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println("Null imageId!");
 			return;
 		}
-		
-		//Parsing process for albumIdString
-		albumId = parsingChecker(request, response, albumIdString);
-		imageId = parsingChecker(request, response, imageIdString);
-
-		//Checking if the parsing process has been successful
-		if (albumId == -1) return;
-		if(imageId == -1)	return;
-		
+        
+        Optional<Integer> parsedId = parsingChecker(request, response, imageIdString);
+        if (parsedId.isPresent())		imageId = parsedId.get();
+        else		return;
+        
 		//Getting image's info from database
 		Image image;
 		ImageDAO imageDAO = new ImageDAO(connection);
-		
 		try {
 			image = imageDAO.getImageById(imageId);
 		
 		//If an error occurred during the process the user is redirected to errorPage
 		} catch (SQLException e) {
-			request.setAttribute("error", e.getMessage());
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;	
+		}
+		
+		if (image == null) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().println("Image does not exist. (imageId_given: " + imageId + ")");
 			return;
 		}
 		
@@ -107,17 +107,31 @@ public class GoToImagePage extends HttpServlet {
 			
 		//If an error occurred during the process the user is redirected to errorPage
 		} catch (SQLException e) {
-			request.setAttribute("error", e.getMessage());
-			return;
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;	
 		}
 		
+		Map<String, Object> jsonObject = new HashMap<>();
+
 		//Checking if the user has to right to delete the image
-		if(currentUser.getId() == image.getUserId())	request.setAttribute("canBeDeleted", true);
-		else	request.setAttribute("canBeDeleted", false);
+		if(currentUser.getId() == image.getUserId())			jsonObject.put("canBeDeleted", true);
+		else	jsonObject.put("canBeDeleted", false);
 		
-		request.setAttribute("albumId", albumId);
 		request.setAttribute("image", image);
 		request.setAttribute("comments", usernameAndComment);
+		
+		// JSON serialization
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		Gson gson = new GsonBuilder().create();
+
+		jsonObject.put("image", image);
+		jsonObject.put("comments", usernameAndComment);
+
+		String json = gson.toJson(jsonObject);
+		response.getWriter().write(json);
 		
 	}
 
@@ -129,21 +143,18 @@ public class GoToImagePage extends HttpServlet {
 		doGet(request, response);
 	}
 	
-	private int parsingChecker(HttpServletRequest request, HttpServletResponse response, String stringToParse) throws ServletException, IOException {
-		int idToReturn;
-		if(stringToParse == null) {
-			request.setAttribute("error", "");
-			return -1;
-		}
-		
-		try {
-			idToReturn = Integer.parseInt(stringToParse);
-			
-		} catch (NumberFormatException e) {
-			request.setAttribute("error", "Id provided for the album is not a number");
-			return -1;
-		}
-		
-		return idToReturn;
-	}
+	private Optional<Integer> parsingChecker(HttpServletRequest request, HttpServletResponse response,
+            String stringToParse) throws ServletException, IOException {
+        int idToReturn;
+
+        try {
+            idToReturn = Integer.parseInt(stringToParse);
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().println("Invalid format: " + stringToParse);
+            return Optional.empty();
+        }
+
+        return Optional.of(idToReturn);
+    }
 }

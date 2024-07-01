@@ -15,9 +15,9 @@ function PageOrchestrator(user){
     let actualPage = null;
 
     //initialiaze all the pages
-    let homePage = new HomePage(user, this)
-    let albumPage = new AlbumPage(this)
-    let imagePage= new ImagePage(user)
+    let homePage = new HomePage(user, this);
+    let albumPage = new AlbumPage(this);
+    let imagePage= new ImagePage(this);
 
     this.logout = function (){
         makeCall("POST", "Logout", null,
@@ -76,9 +76,7 @@ function PageOrchestrator(user){
 				break;
 				
 		    case 'image':
-				this.hideActualPage();
 		      	imagePage.open(info1, info2);
-		 		actualPage = imagePage;
 		      	break;
 		      	
 	      	case 'login':
@@ -90,6 +88,10 @@ function PageOrchestrator(user){
 		      	break;
 		  }
 	}
+	
+	this.closeModal = function() {
+        imagePage.closeModal;
+    }
 	
 	/*checks if the session is still active
 	* in case if it isn't it shows the HomePage*/
