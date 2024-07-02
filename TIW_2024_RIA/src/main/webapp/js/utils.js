@@ -236,3 +236,12 @@ function showSuccessAlert(message) {
     confirmButtonText: 'OK'
   });
 }
+
+function showInfoAlert(message) {
+  Swal.fire({
+    title: 'Not authorized!',
+    text: message,
+    icon: 'info',
+    confirmButtonText: 'OK'
+  });
+}

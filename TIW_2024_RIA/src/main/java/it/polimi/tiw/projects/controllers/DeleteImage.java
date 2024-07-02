@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +27,7 @@ import it.polimi.tiw.projects.utils.PathHelper;
  * Servlet implementation class DeleteImage
  */
 @WebServlet("/DeleteImage")
+@MultipartConfig
 public class DeleteImage extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection;       
@@ -70,13 +73,15 @@ public class DeleteImage extends HttpServlet {
 		int imageId;
 		
 		if(imageIdString == null) {
-			request.setAttribute("error", "Null account code, when accessing account details");
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.getWriter().println("Please provide a valid id for the image to delete!");
 			return;
 		}
 		
 		//Parsing process for albumIdString
-		imageId = parsingChecker(request, response, imageIdString);
-		if (imageId == -1) return;
+		Optional<Integer> parsedId = parsingChecker(request, response, imageIdString);
+        if (parsedId.isPresent())		imageId = parsedId.get();
+        else		return;
 		
 		Image currentImage;
 		ImageDAO imageDAO = new ImageDAO(connection);
@@ -85,12 +90,21 @@ public class DeleteImage extends HttpServlet {
 		
 		//If an error occurred during the process the user is redirected to errorPage
 		} catch (SQLException e) {
-			request.setAttribute("error", e.getMessage());
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;	
+		}
+		
+		if(currentImage == null) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().println("Image does not exist. (imageId_given: " + imageId + ")");
 			return;
 		}
 		
 		if(currentUser.getId() != currentImage.getUserId()) {
-			request.setAttribute("error", "You can only delate images that you created!");
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().println("You can only delate images that you created!");
+			return;
 		}
 		
 		//Deleting the image from the database
@@ -99,8 +113,9 @@ public class DeleteImage extends HttpServlet {
 		
 		//If an error occurred during the process the user is redirected to errorPage
 		} catch (SQLException e) {
-			request.setAttribute("error", e.getMessage());
-			return;
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;	
 		}
 		
 		//Deleting the image from albums in which is saved
@@ -110,8 +125,9 @@ public class DeleteImage extends HttpServlet {
 		
 		//If an error occurred during the process the user is redirected to errorPage
 		} catch (SQLException e) {
-			request.setAttribute("error", e.getMessage());
-			return;
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;	
 		}
 		
 		//Deleting all comments relative to the image
@@ -121,30 +137,28 @@ public class DeleteImage extends HttpServlet {
 		
 		//If an error occurred during the process the user is redirected to errorPage
 		} catch (SQLException e) {
-			request.setAttribute("error", e.getMessage());
-			return;
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;	
 		}
 		
-		String warningMessage = "Image deleted successfully!";
-        response.sendRedirect(getServletContext().getContextPath() + PathHelper.goToServlet("home") + "?deleteImage=" + URLEncoder.encode(warningMessage, "UTF-8"));
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.getWriter().println("Image deleted successfully!");
 	}
 	
-	private int parsingChecker(HttpServletRequest request, HttpServletResponse response, String stringToParse) throws ServletException, IOException {
-		int idToReturn;
-		if(stringToParse == null) {
-			request.setAttribute("error", "");
-			return -1;
-		}
-		
-		try {
-			idToReturn = Integer.parseInt(stringToParse);
-			
-		} catch (NumberFormatException e) {
-			request.setAttribute("error", "Id provided for the album is not a number");
-			return -1;
-		}
-		
-		return idToReturn;
-	}
+	private Optional<Integer> parsingChecker(HttpServletRequest request, HttpServletResponse response,
+            String stringToParse) throws ServletException, IOException {
+        int idToReturn;
+
+        try {
+            idToReturn = Integer.parseInt(stringToParse);
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().println("Id provided for the image is not a number: " + stringToParse);
+            return Optional.empty();
+        }
+
+        return Optional.of(idToReturn);
+    }
 
 }

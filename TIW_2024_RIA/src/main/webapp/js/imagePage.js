@@ -5,6 +5,7 @@ function ImagePage(pageOrchestrator) {
     // Getting references of the HTML elements
     let modal = document.getElementById("imageModal");
     let imageModalContent = document.getElementById("imageModalContent");
+    let imagePageDiv = document.getElementById("albumPageDiv");
     let imageContainer = document.getElementById("fullImage");
     let imageTitleHeader = document.getElementById("imageTitleHeader");
     let imageCreationDate = document.getElementById("imageCreationDate");
@@ -18,14 +19,16 @@ function ImagePage(pageOrchestrator) {
     let albumId;
 
     // Adding listeners
-    addCommentForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        addComment();
+    document.getElementById("alert-button").addEventListener("click", hideAlert);
+
+    addCommentForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        addComment(e.target); // Passa direttamente l'elemento form
     });
 
-    deleteImageForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        deleteImage();
+    deleteImageForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        deleteImage(e.target); // Passa direttamente l'elemento form
     });
 
     // Function to open the Image page
@@ -95,78 +98,106 @@ function ImagePage(pageOrchestrator) {
     }
 
     function setComments(comments) {
-        commentsWrapper.innerHTML = "";
+	    commentsWrapper.innerHTML = "";
+	
+	    comments.forEach(comment => {
+	        let p = document.createElement("p");
+	        p.textContent = `${comment.key}: ${comment.value}`; // Use textContent instead of innerHTML
+	        commentsWrapper.appendChild(p);
+	    });
+	}
 
-        comments.forEach(comment => {
-            let p = document.createElement("p");
-            p.innerHTML = `<strong>${comment.key}</strong>: <span>${comment.value}</span>`;
-            commentsWrapper.appendChild(p);
-        });
-    }
+    function addComment(form) {
+	    let comment = form.elements["comment"].value.trim(); // Ottieni il valore del commento e rimuovi spazi bianchi
+	
+	    if (comment === "") {
+	        showAlert("The comment can not be empty");
+	        return; // Esci dalla funzione senza fare ulteriori operazioni
+	    }
+	
+	    // Se il commento non è vuoto, procedi con l'invio della richiesta al server
+	    let formData = new FormData();
+	    formData.append("comment", comment);
+	    formData.append("imageId", imageId);
+	
+	    let tempForm = document.createElement("form");
+	
+	    // Aggiungi i campi FormData al form temporaneo
+	    for (let [key, value] of formData.entries()) {
+	        let input = document.createElement("input");
+	        input.type = "hidden";
+	        input.name = key;
+	        input.value = value;
+	        tempForm.appendChild(input);
+	    }
+	
+	    makeCall("POST", "AddComment", tempForm, function(x) {
+	        if (x.readyState === XMLHttpRequest.DONE) {
+	            var message = x.responseText;
+	            switch (x.status) {
+	                case 200:
+	                    showSuccessAlert("Commento aggiunto con successo!");
+	                    var jsonObject = JSON.parse(message);
+	                    var comments = jsonObject.comments;
+	                    setComments(comments);
+	                    form.elements["comment"].value = ""; // Cancella il campo di input del commento
+	                    break;
+	
+	                case 400: // bad request
+	                    showErrorAlert(message);
+	                    break;
+	
+	                case 401: // unauthorized
+	                    showErrorAlert(message);
+	                    break;
+	
+	                case 500: // server error
+	                    showErrorAlert(message);
+	                    break;
+	
+	                default:
+	                    pageOrchestrator.showError(message);
+	                    break;
+	            }
+	        }
+	    });
+	}
 
-    function addComment() {
-        let formData = new FormData(addCommentForm);
+    function deleteImage(form) {	
+	    if (form.checkValidity()) {
+		    makeCall("POST", "DeleteImage", form, function(x) {
+		        if (x.readyState === XMLHttpRequest.DONE) {
+		            var message = x.responseText;
+		            
+		            switch (x.status) {
+		                case 200:
+		                    showSuccessAlert(message);
+		                    pageOrchestrator.showPage("album", albumId);
+		                    break;
+		
+		                case 400: // bad request
+		                    showErrorAlert(message);
+		                    break;
+		
+		                case 401: // unauthorized
+		                    showErrorAlert(message);
+		                    break;
+		
+		                case 500: // server error
+		                    showErrorAlert(message);
+		                    break;
+		
+		                default:
+		                    pageOrchestrator.showError(message);
+		                    break;
+		            }
+		        }
+		    });
+	    } else {
+	        form.reportValidity();
+	    }
+	}
 
-        makeCall("POST", "AddComment", formData, function(x) {
-            if (x.readyState === XMLHttpRequest.DONE) {
-                var message = x.responseText;
-                switch (x.status) {
-                    case 200:
-                        showSuccessAlert(message);
-                        pageOrchestrator.showPage("image", albumId, imageId);
-                        break;
-
-                    case 400: // bad request
-                        showErrorAlert(message);
-                        break;
-
-                    case 401: // unauthorized
-                        showErrorAlert(message);
-                        break;
-
-                    case 500: // server error
-                        showErrorAlert(message);
-                        break;
-
-                    default:
-                        pageOrchestrator.showError(message);
-                        break;
-                }
-            }
-        });
-    }
-
-    function deleteImage() {
-        let formData = new FormData(deleteImageForm);
-
-        makeCall("POST", "DeleteImage", formData, function(x) {
-            if (x.readyState === XMLHttpRequest.DONE) {
-                var message = x.responseText;
-                switch (x.status) {
-                    case 200:
-                        showSuccessAlert(message);
-                        pageOrchestrator.showPage("album", albumId);
-                        break;
-
-                    case 400: // bad request
-                        showErrorAlert(message);
-                        break;
-
-                    case 401: // unauthorized
-                        showErrorAlert(message);
-                        break;
-
-                    case 500: // server error
-                        showErrorAlert(message);
-                        break;
-
-                    default:
-                        pageOrchestrator.showError(message);
-                        break;
-                }
-            }
-        });
-    }
 
     // Function to open the modal
     this.openModal = function() {
@@ -190,4 +221,17 @@ function ImagePage(pageOrchestrator) {
     this.hide = function() {
         imagePageDiv.style.display = "none";
     };
+    
+    function showAlert(message) {
+	    let alertBox = document.getElementById("alert-box");
+	    let alertMessage = alertBox.querySelector(".alert-message");
+	    alertMessage.textContent = message;
+	    alertBox.style.display = "block";
+	}
+	
+	function hideAlert() {
+	    let alertBox = document.getElementById("alert-box");
+	    alertBox.style.display = "none";
+	}
+
 }

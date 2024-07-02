@@ -89,23 +89,22 @@ function AlbumPage(pageOrchestrator) {
     }
 
     function updateImagesGrid() {
-        imagesGrid.innerHTML = ""; // Cleaning the grid
-
-        if (images === null || images.length === 0) {
-            // Aggiungi 5 slot vuoti se non ci sono immagini
-            for (let i = 0; i < imagesPerPage; i++) {
-                let emptySlot = document.createElement("div");
-                emptySlot.className = "image-slot empty";
-                imagesGrid.appendChild(emptySlot);
-            }
-
-            // Nascondi i pulsanti di navigazione se non ci sono immagini
-            previousButton.style.display = "none";
-            nextButton.style.display = "none";
-            return;
-        }
-
-        let start = currentPage * imagesPerPage;
+	    imagesGrid.innerHTML = ""; // Cleaning the grid
+	
+	    if (images === null || images.length === 0) {
+	        // Aggiungi 5 slot vuoti se non ci sono immagini
+	        for (let i = 0; i < imagesPerPage; i++) {
+	            let emptySlot = document.createElement("div");
+	            emptySlot.className = "image-slot empty-slot";
+	            imagesGrid.appendChild(emptySlot);
+	        }
+	
+	        previousButton.style.display = "none";
+	        nextButton.style.display = "none";
+	        return;
+	    }
+	
+	    let start = currentPage * imagesPerPage;
         let end = Math.min(start + imagesPerPage, images.length);
 
         for (let i = start; i < end; i++) {
@@ -124,9 +123,14 @@ function AlbumPage(pageOrchestrator) {
             let p = document.createElement("p");
             p.textContent = image.title;
 
-            // Aggiungi listener per l'immagine
-            img.addEventListener('mouseenter', function() {
-				console.log(image.id);
+            // Aggiungi listener per l'immagine e il titolo
+            imageLink.addEventListener('click', function() {
+                pageOrchestrator.showPage("image", albumId, image.id);
+            });
+            img.addEventListener('click', function() {
+                pageOrchestrator.showPage("image", albumId, image.id);
+            });
+            p.addEventListener('click', function() {
                 pageOrchestrator.showPage("image", albumId, image.id);
             });
 
@@ -147,6 +151,7 @@ function AlbumPage(pageOrchestrator) {
         previousButton.style.display = currentPage > 0 ? "inline-block" : "none";
         nextButton.style.display = end < images.length ? "inline-block" : "none";
     }
+
 
     // Funzione per popolare la colonna con i titoli delle immagini
     function populateOrderImageColumn() {

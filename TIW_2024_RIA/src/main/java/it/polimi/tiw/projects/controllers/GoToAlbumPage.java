@@ -124,12 +124,6 @@ public class GoToAlbumPage extends HttpServlet {
             response.getWriter().println("Error while creating album: " + e.getMessage());
             return;
         }
-        
-        if(images == null || images.isEmpty()) {
-        	response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			response.getWriter().println("The id provided for the album is incorrect or the album does not exist!");
-			return;
-        }
 		
 		// JSON serialization
 		response.setStatus(HttpServletResponse.SC_OK);

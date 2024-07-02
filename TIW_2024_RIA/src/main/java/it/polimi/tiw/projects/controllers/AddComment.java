@@ -4,24 +4,36 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import it.polimi.tiw.projects.beans.Image;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.CommentDAO;
+import it.polimi.tiw.projects.dao.ImageDAO;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.PathHelper;
+import it.polimi.tiw.projects.utils.Tuple;
 
 /**
  * Servlet implementation class AddComment
  */
 @WebServlet("/AddComment")
+@MultipartConfig
 public class AddComment extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
@@ -67,66 +79,96 @@ public class AddComment extends HttpServlet {
 		
 		String comment = request.getParameter("comment");
 		String imageIdString = request.getParameter("imageId");
-		String albumIdString = request.getParameter("albumId");
 		int imageId;
-		int albumId;
 		
-		//Checking if the inserted email is actually a valid email address and assuring that its length is <= 255
-		if (comment==null || comment.length()>255 ||  comment.length()<=0) {
-			request.setAttribute("error", "Invalid comment (a valid comment has more than one character and less than 255)!");
-			return;
-		}
-				
-		if(albumIdString == null) {
-			request.setAttribute("error", "Null albumId!");
+		//Checking if the comment is actually valid by assuring that its length is <= 150
+		if (comment == null || comment.length() > 150 ||  comment.length() <= 0) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.getWriter().println("Invalid comment (a valid comment has more than one character and less than 150)!");
 			return;
 		}
 		
 		//Checking if the imageIdString is valid
 		if(imageIdString == null) {
 			request.setAttribute("error", "Null imageId!");
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.getWriter().println("Null imageId!");
 			return;
 		}
 		
 		//Parsing process for albumIdString
-		albumId = parsingChecker(request, response, albumIdString);
-		imageId = parsingChecker(request, response, imageIdString);
-
-		//Checking if the parsing process has been successful
-		if (albumId == -1) return;
-		if(imageId == -1)	return;
+		Optional<Integer> parsedId = parsingChecker(request, response, imageIdString);
+        if (parsedId.isPresent())		imageId = parsedId.get();
+        else		return;
 		
-
+        //Accessing the database in order to check if the image exists
+        Image image;
+		ImageDAO imageDAO = new ImageDAO(connection);
+		try {
+			image = imageDAO.getImageById(imageId);
+		
+		//If an error occurred during the process the user is redirected to errorPage
+		} catch (SQLException e) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;	
+		}
+		
+		if (image == null) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().println("Image does not exist. (imageId_given: " + imageId + ")");
+			return;
+		}
+        
+		//Adding the comment to database
 		CommentDAO commentDAO = new CommentDAO(connection);
+		List<Tuple> usernameAndComment;
 		try {
 			commentDAO.addComment(comment, currentUser.getId(), imageId);
 		
 		//If an error occurred during the process the user is redirected to errorPage
 		} catch (SQLException e) {
-			request.setAttribute("error", e.getMessage());
-			return;
-		}
-		
-		response.sendRedirect(getServletContext().getContextPath() + PathHelper.goToServlet("image") + "?imageId=" + URLEncoder.encode(Integer.toString(imageId), "UTF-8") + "&albumId=" + URLEncoder.encode(Integer.toString(albumId), "UTF-8"));
-	}
-	
-	private int parsingChecker(HttpServletRequest request, HttpServletResponse response, String stringToParse) throws ServletException, IOException {
-		int idToReturn;
-		if(stringToParse == null) {
-			request.setAttribute("error", "");
-			return -1;
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;	
 		}
 		
 		try {
-			idToReturn = Integer.parseInt(stringToParse);
+			usernameAndComment = commentDAO.getCommentsByImageId(imageId);
 			
-		} catch (NumberFormatException e) {
-			request.setAttribute("error", "Id provided for the album is not a number");
-
-			return -1;
+		//If an error occurred during the process the user is redirected to errorPage
+		} catch (SQLException e) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;	
 		}
 		
-		return idToReturn;
+		// JSON serialization
+		Map<String, Object> jsonObject = new HashMap<>();
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		Gson gson = new GsonBuilder().create();
+
+		jsonObject.put("comments", usernameAndComment);
+
+		String json = gson.toJson(jsonObject);
+		response.getWriter().write(json);
 	}
+	
+	private Optional<Integer> parsingChecker(HttpServletRequest request, HttpServletResponse response,
+            String stringToParse) throws ServletException, IOException {
+        int idToReturn;
+
+        try {
+            idToReturn = Integer.parseInt(stringToParse);
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().println("Id provided for the image is not a number: " + stringToParse);
+            return Optional.empty();
+        }
+
+        return Optional.of(idToReturn);
+    }
 
 }

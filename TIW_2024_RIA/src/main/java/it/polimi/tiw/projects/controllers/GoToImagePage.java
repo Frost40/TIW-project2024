@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +32,7 @@ import it.polimi.tiw.projects.utils.Tuple;
  * Servlet implementation class GoToImagePage
  */
 @WebServlet("/GoToImagePage")
+@MultipartConfig
 public class GoToImagePage extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
@@ -70,7 +72,7 @@ public class GoToImagePage extends HttpServlet {
 		int imageId;
 		
 		if(imageIdString == null) {
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println("Null imageId!");
 			return;
 		}
@@ -117,10 +119,7 @@ public class GoToImagePage extends HttpServlet {
 		//Checking if the user has to right to delete the image
 		if(currentUser.getId() == image.getUserId())			jsonObject.put("canBeDeleted", true);
 		else	jsonObject.put("canBeDeleted", false);
-		
-		request.setAttribute("image", image);
-		request.setAttribute("comments", usernameAndComment);
-		
+				
 		// JSON serialization
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType("application/json");

@@ -88,6 +88,7 @@ public class CommentDAO {
 			}
 		}
 	}
+
 	
 	public void deleteAllComments(int imageId) throws SQLException {
 		String performedAction = " deleting all comments relative to 'imageId' ";
