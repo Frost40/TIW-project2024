@@ -85,6 +85,7 @@ function ImagePage(pageOrchestrator) {
     }
 
     function setImageInfo(image, canBeDeleted) {
+		console.log(image.description);
         imageTitleHeader.textContent = image.title;
         imageCreationDate.textContent = "Created on: " + image.creationDate;
         imageDescription.textContent = "Description: " + image.description;

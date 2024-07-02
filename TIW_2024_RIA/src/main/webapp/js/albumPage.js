@@ -124,13 +124,7 @@ function AlbumPage(pageOrchestrator) {
             p.textContent = image.title;
 
             // Aggiungi listener per l'immagine e il titolo
-            imageLink.addEventListener('click', function() {
-                pageOrchestrator.showPage("image", albumId, image.id);
-            });
-            img.addEventListener('click', function() {
-                pageOrchestrator.showPage("image", albumId, image.id);
-            });
-            p.addEventListener('click', function() {
+            img.addEventListener('mouseover', function() {
                 pageOrchestrator.showPage("image", albumId, image.id);
             });
 
