@@ -41,8 +41,13 @@ function HomePage(user, pageOrchestrator) {
 	                var message = x.responseText;
 	                switch (x.status) {
 	                    case 200:
+							var jsonObject = JSON.parse(message);
+	                        var images = jsonObject.allImages;
+	                        
+                            self.updateAllUserImages(images);
+
 	                        form.reset();
-	                        showSuccessAlert(message);
+	                        showSuccessAlert("Image Uploaded successfully!");
 	                        break;
 	                    
 	                    case 400: // bad request
@@ -112,6 +117,8 @@ function HomePage(user, pageOrchestrator) {
     this.updateMyAlbums = function (myAlbums) {    
         myAlbumsContainer.innerHTML = '';
 
+        if (myAlbums === null)		return;
+
         myAlbums.forEach(function(album, index) {
             var albumElement = document.createElement('div');
             albumElement.className = 'album';
@@ -147,6 +154,8 @@ function HomePage(user, pageOrchestrator) {
     this.updateOthersAlbums = function (othersAlbums) {    
         // Rimuovo eventuali elementi precedenti
         othersAlbumsContainer.innerHTML = '';
+        
+        if (othersAlbums === null)		return;
     
         if (othersAlbums.length === 0) {
             var noAlbumsElement = document.createElement('div');
@@ -272,8 +281,14 @@ function createAlbum(form) {
             var message = x.responseText;
             switch (x.status) {
                 case 200:
+					var jsonObject = JSON.parse(message);
+                    var albums = jsonObject.albums;
+                    console.log(albums);
+                    
+                    self.updateMyAlbums(albums);
+                            
                     form.reset();
-                    showSuccessAlert(message);
+                    showSuccessAlert("Album created successfully!");
                     break;
 
                 case 400: // bad request

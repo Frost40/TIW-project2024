@@ -80,14 +80,17 @@ function AlbumPage(pageOrchestrator) {
                         break;
 
                     case 400: // bad request
+                        pageOrchestrator.showPage("home");
                         showErrorAlert(message);
                         break;
 
                     case 401: // unauthorized
+                        pageOrchestrator.showPage("home");
                         showErrorAlert(message);
                         break;
 
                     case 500: // server error
+                        pageOrchestrator.showPage("home");
                         showErrorAlert(message);
                         break;
 

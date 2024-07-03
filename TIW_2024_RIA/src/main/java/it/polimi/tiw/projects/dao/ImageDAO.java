@@ -66,6 +66,54 @@ public class ImageDAO {
 	    return image;
 	}
 	
+	public List<Image> getImagesByUserId (int userId) throws SQLException {
+		List<Image> images = new ArrayList<Image>();
+		String performedAction = " getting all images uploaded by the user ";
+		String query = "SELECT * FROM Image WHERE userId = ?";
+		PreparedStatement preparedStatement = null;
+	    ResultSet resultSet = null;
+	    
+	    try {
+			preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setInt(1, userId);
+			
+			resultSet = preparedStatement.executeQuery();
+
+			while (resultSet.next()) {
+				Image image = new Image();
+				image.setId(resultSet.getInt("id"));
+				image.setTitle(resultSet.getString("title"));
+				image.setPath(resultSet.getString("path"));
+				image.setDescription(resultSet.getString("description"));
+				image.setCreationDate(resultSet.getDate("creationDate"));
+				image.setUserId(resultSet.getInt("userId"));
+				
+				images.add(image);
+			}
+			
+	    } catch (SQLException e) {
+			throw new SQLException("Error accessing the DB when" + performedAction + "[ " + e.getMessage() + " ]");
+
+		} finally {
+
+			try {
+				resultSet.close();
+
+			} catch (Exception e) {
+				throw new SQLException("Error closing the result set when" + performedAction + "[ " + e.getMessage() + " ]");
+			}
+
+			try {
+				preparedStatement.close();
+
+			} catch (Exception e) {
+				throw new SQLException("Error closing the statement when" + performedAction + "[ " + e.getMessage() + " ]");
+			}
+		}
+	    
+	    return images;
+	}
+	
 	public List<Image> getImagesByAlbumId(int albumId) throws SQLException {
 		List<Image> images = new ArrayList<Image>();
 		String performedAction = " getting all images in 'albumId' by joining 'ImageAlbumLink' with 'Image' ";

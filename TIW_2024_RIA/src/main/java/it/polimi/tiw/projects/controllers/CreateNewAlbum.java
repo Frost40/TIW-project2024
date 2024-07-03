@@ -6,7 +6,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.ServletContext;
@@ -18,6 +20,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -27,6 +32,7 @@ import javax.json.JsonString;
 import javax.json.JsonValue;
 import java.util.ArrayList;
 
+import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.AlbumDAO;
 import it.polimi.tiw.projects.dao.ImageDAO;
@@ -77,20 +83,18 @@ public class CreateNewAlbum extends HttpServlet {
             response.getWriter().println("No images have been selected to be part of the album");
             return;
         }
-        System.out.println(selectedImagesJson);
 
-        // Creare un StringReader per leggere la stringa JSON
+        //Extracting info from Json via stringReader
         try (StringReader stringReader = new StringReader(selectedImagesJson);
              JsonReader jsonReader = Json.createReader(stringReader)) {
 
-            // Leggere l'array JSON
             JsonArray jsonArray = jsonReader.readArray();
 
             // Iterare attraverso gli elementi dell'array JSON
             for (JsonValue jsonValue : jsonArray) {
                 String imageIdString = ((JsonString) jsonValue).getString();
 
-                // Assumendo che parsingChecker restituisca un Optional<Integer>
+                //Parsing the imageId
                 Optional<Integer> parsedImageId = parsingChecker(request, response, imageIdString);
                 if (!parsedImageId.isPresent()) {
                     return;
@@ -100,52 +104,69 @@ public class CreateNewAlbum extends HttpServlet {
                 tupleOfInteger.setKey(parsedImageId.get());
                 listOfInfoImage.add(tupleOfInteger);
             }
-            
+    		
+        //If an error occurred during the process the user is redirected to errorPage   
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().println("Error while extracting the creation dates of the images: " + e.getMessage());
             return;
         }
-
-        for (TupleOfInteger x : listOfInfoImage) {
-            System.out.println(x.getKey() + ", ");
-        }
         
         ImageDAO imageDAO = new ImageDAO(connection);
         try {
         	listOfInfoImage = imageDAO.getCreationDates(listOfInfoImage);
-        	
+    		
+        //If an error occurred during the process the user is redirected to errorPage
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().println("Error while extracting the creation dates of the images: " + e.getMessage());
             return;
         }
-        for(TupleOfInteger x : listOfInfoImage) {
-        	System.out.println("key: " + x.getKey() + "date: " + x.getValueLong());
-        }
         
         listOfInfoImage = assignOrderBasedOnTimestamp(listOfInfoImage);
-        for(TupleOfInteger x : listOfInfoImage) {
-        	System.out.println("key: " + x.getKey() + "date: " + x.getValueLong() + "order: " + x.getValue());
-        }
         
         AlbumDAO albumDAO = new AlbumDAO(connection);
         try {
             albumDAO.createAlbumWithImages(albumTitle, currentUser.getId(), listOfInfoImage);
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().println("Album created successfully!");
-            
+    	
+        //If an error occurred during the process the user is redirected to errorPage
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().println("Error while creating album: " + e.getMessage());
             return;
         }
         
+        List<Album> myAlbums;
+        try {
+        	myAlbums = albumDAO.getUserAlbums(currentUser.getId());
+        	
+		//If an error occurred during the process the user is redirected to errorPage
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().println("Error while creating album: " + e.getMessage());
+            return;
+        }
+        
+        for(Album x : myAlbums) {
+        	System.out.println(x.getId() + ", " + x.getTitle() + "," + x.getCreationDate() + "," + x.getUserId());
+        }
+        
+        // JSON serialization
+ 		response.setStatus(HttpServletResponse.SC_OK);
+ 		response.setContentType("application/json");
+ 		response.setCharacterEncoding("UTF-8");
+ 		Gson gson = new GsonBuilder().create();
+
+ 		Map<String, Object> jsonObject = new HashMap<>();
+ 		jsonObject.put("albums", myAlbums);
+
+ 		String json = gson.toJson(jsonObject);
+ 		response.getWriter().write(json);
     }
     
  // Metodo per parsare la stringa JSON e ottenere la lista di TupleOfInteger
-    public void processSelectedImages(HttpServletRequest request, HttpServletResponse response, String selectedImagesJson) {
+    public void processSelectedImages(HttpServletRequest request, HttpServletResponse response, String selectedImagesJson) throws IOException {
         List<TupleOfInteger> listOfInfoImage = new ArrayList<>();
 
         // Creare un StringReader per leggere la stringa JSON
@@ -170,12 +191,9 @@ public class CreateNewAlbum extends HttpServlet {
                 listOfInfoImage.add(tupleOfInteger);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            // Gestione dell'errore
-        }
-
-        for (TupleOfInteger x : listOfInfoImage) {
-            System.out.println(x.getKey() + ", ");
+        	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().println(e.getMessage());
+            return;
         }
     }
 
