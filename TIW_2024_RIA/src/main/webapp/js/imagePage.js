@@ -1,4 +1,4 @@
-function ImagePage(pageOrchestrator) {
+function ImagePage(user, pageOrchestrator) {
     var self = this;
     this.pageOrchestrator = pageOrchestrator;
 
@@ -15,8 +15,10 @@ function ImagePage(pageOrchestrator) {
     let deleteImageForm = document.getElementById("deleteImageForm");
 
     // Data of the page
-    let imageId;
+    let currentUser = user;
+    let image;
     let albumId;
+    let imageComments;
 
     // Adding listeners
     document.getElementById("alert-button").addEventListener("click", hideAlert);
@@ -32,48 +34,24 @@ function ImagePage(pageOrchestrator) {
     });
 
     // Function to open the Image page
-    this.open = function(albumIdFromAlbumPage, imageIdFromAlbumPage) {
-        imageId = imageIdFromAlbumPage;
+    this.open = function(albumIdFromAlbumPage, imageFromAlbumPage, imageCommentsFromAlbum) {
+        image = imageFromAlbumPage;
         albumId = albumIdFromAlbumPage;
+        imageComments = imageCommentsFromAlbum;
+        
+        console.log(albumId);
+        console.log(image);
+        console.log(imageComments);
+        
+        setImage(image);
+        setComments(imageComments);
+        
+        console.log(currentUser);
 
-        // Construct query string
-        var url = "GoToImagePage?imageId=" + encodeURIComponent(imageId);
-
-        makeCall("GET", url, null, function(x) {
-            if (x.readyState === XMLHttpRequest.DONE) {
-                var message = x.responseText;
-                switch (x.status) {
-                    case 200:
-                        var jsonObject = JSON.parse(message);
-                        var image = jsonObject.image;
-                        var comments = jsonObject.comments;
-                        var canBeDeleted = jsonObject.canBeDeleted;
-
-                        setImage(image);
-                        setImageInfo(image, canBeDeleted);
-                        setComments(comments);
-
-                        self.openModal();
-                        break;
-
-                    case 400: // bad request
-                        showErrorAlert(message);
-                        break;
-
-                    case 401: // unauthorized
-                        showErrorAlert(message);
-                        break;
-
-                    case 500: // server error
-                        showErrorAlert(message);
-                        break;
-
-                    default:
-                        pageOrchestrator.showError(message);
-                        break;
-                }
-            }
-        });
+		if (currentUser.id === image.userId)		setImageInfo(image, true);
+		else		setImageInfo(image, false);
+        
+        self.openModal();
 
         // Add mouseleave event listener to close modal when mouse leaves imageModalContent
         imageModalContent.addEventListener('mouseleave', self.closeModalOnMouseLeave);
@@ -108,7 +86,9 @@ function ImagePage(pageOrchestrator) {
     }
 
     function setComments(comments) {
-	    commentsWrapper.innerHTML = "";
+		commentsWrapper.innerHTML = "";
+
+		if (comments === null)	return;
 	
 	    comments.forEach(comment => {
 	        let p = document.createElement("p");
@@ -128,7 +108,7 @@ function ImagePage(pageOrchestrator) {
 	    // Se il commento non è vuoto, procedi con l'invio della richiesta al server
 	    let formData = new FormData();
 	    formData.append("comment", comment);
-	    formData.append("imageId", imageId);
+	    formData.append("imageId", image.id);
 	
 	    let tempForm = document.createElement("form");
 	

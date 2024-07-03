@@ -63,6 +63,85 @@ public class CommentDAO {
 		return usernameAndComment;
 	}
 	
+	public HashMap<Integer, List<Tuple>> getAllComments(List<Integer> imageIds) throws SQLException {
+        HashMap<Integer, List<Tuple>> commentsMap = new HashMap<>();
+        if (imageIds == null || imageIds.isEmpty()) {
+            return commentsMap; // Ritorna una mappa vuota se la lista è nulla o vuota
+        }
+        
+        String performedAction = "getting all comments";
+        
+        // Creiamo una stringa con punti interrogativi per ogni imageId nella lista
+        StringBuilder queryBuilder = new StringBuilder("SELECT Comment.text, User.username, Comment.imageId ")
+            .append("FROM Comment ")
+            .append("JOIN User ON Comment.userId = User.id ")
+            .append("WHERE Comment.imageId IN (");
+
+        for (int i = 0; i < imageIds.size(); i++) {
+            queryBuilder.append("?");
+            if (i < imageIds.size() - 1) {
+                queryBuilder.append(",");
+            }
+        }
+        queryBuilder.append(")");
+
+        String query = queryBuilder.toString();
+        
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            preparedStatement = connection.prepareStatement(query);
+
+            // Imposta i valori dei punti interrogativi nella query
+            for (int i = 0; i < imageIds.size(); i++) {
+                preparedStatement.setInt(i + 1, imageIds.get(i));
+            }
+
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                int imageId = resultSet.getInt("imageId");
+                String username = resultSet.getString("username");
+                String text = resultSet.getString("text");
+
+                Tuple comment = new Tuple(username, text);
+
+                if (!commentsMap.containsKey(imageId)) {
+                    List<Tuple> commentList = new ArrayList<>();
+                    commentList.add(comment);
+                    commentsMap.put(imageId, commentList);
+                } else {
+                    commentsMap.get(imageId).add(comment);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new SQLException("Error accessing the DB when " + performedAction + " [ " + e.getMessage() + " ]");
+
+        } finally {
+            try {
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+            } catch (Exception e) {
+                throw new SQLException("Error closing the result set when " + performedAction + " [ " + e.getMessage() + " ]");
+            }
+
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+            } catch (Exception e) {
+                throw new SQLException("Error closing the statement when " + performedAction + " [ " + e.getMessage() + " ]");
+            }
+        }
+
+        return commentsMap;
+    }
+
+	
+	
 	public void addComment(String comment, int creatorId, int imageId) throws SQLException  {
 		String performedAction = " adding the new comment to database ";
 		String query = "INSERT into Comment (text, userId, imageId) VALUES (?, ?, ?)";

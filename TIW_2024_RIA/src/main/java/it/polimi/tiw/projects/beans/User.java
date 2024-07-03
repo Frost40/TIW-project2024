@@ -1,7 +1,7 @@
 package it.polimi.tiw.projects.beans;
 
 public class User {
-	private int ID;
+	private int id;
 	private String username;
 	private String email;
 	private String password;
@@ -9,12 +9,12 @@ public class User {
 	/**
 	 * getter and setter for "ID"
 	 */
-	public void setId(int ID) {
-		this.ID = ID;
+	public void setId(int id) {
+		this.id = id;
 	}
 	
 	public int getId() {
-		return ID;
+		return id;
 	}
 	
 	/**

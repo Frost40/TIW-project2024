@@ -17,7 +17,7 @@ function PageOrchestrator(user){
     //initialiaze all the pages
     let homePage = new HomePage(user, this);
     let albumPage = new AlbumPage(this);
-    let imagePage= new ImagePage(this);
+    let imagePage= new ImagePage(user, this);
 
     this.logout = function (){
         makeCall("POST", "Logout", null,
@@ -61,7 +61,7 @@ function PageOrchestrator(user){
       }
     }
     
-    this.showPage = function (pageName, info1, info2) {
+    this.showPage = function (pageName, info1, info2, info3) {
 		switch(pageName) {
 			case 'home':
 				this.hideActualPage();
@@ -76,7 +76,7 @@ function PageOrchestrator(user){
 				break;
 				
 		    case 'image':
-		      	imagePage.open(info1, info2);
+		      	imagePage.open(info1, info2, info3);
 		      	break;
 		      	
 	      	case 'login':

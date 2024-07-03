@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -21,10 +22,12 @@ import com.google.gson.GsonBuilder;
 import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Image;
 import it.polimi.tiw.projects.dao.AlbumDAO;
+import it.polimi.tiw.projects.dao.CommentDAO;
 import it.polimi.tiw.projects.dao.ImageAlbumLinkDAO;
 import it.polimi.tiw.projects.dao.ImageDAO;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.Message;
+import it.polimi.tiw.projects.utils.Tuple;
 
 /**
  * Servlet implementation class goToAlbumPage
@@ -77,7 +80,7 @@ public class GoToAlbumPage extends HttpServlet {
 		
 		if(albumId < 0) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
-			response.getWriter().println("Id provided for the album is not a number!");
+			response.getWriter().println("Id provided for the album is not a valid number!");
 			return;
 		}
 		
@@ -124,6 +127,59 @@ public class GoToAlbumPage extends HttpServlet {
             response.getWriter().println("Error while creating album: " + e.getMessage());
             return;
         }
+        
+        //Getting all image's comments with relative username info from database
+		CommentDAO commentDAO = new CommentDAO(connection);
+		HashMap<Integer, List<Tuple>> allComments;
+		List<Integer> imageIds = images.stream()
+                .map(Image::getId)
+                .collect(Collectors.toList());
+		for(Integer x : imageIds) {
+			System.out.println(x + ", ");
+		}
+		try {
+			allComments = commentDAO.getAllComments(imageIds);
+			
+		//If an error occurred during the process the user is redirected to errorPage
+		} catch (SQLException e) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;	
+		}
+		
+		/*
+		for (Map.Entry<Integer, List<Tuple>> entry : allComments.entrySet()) {
+	        Integer imageId = entry.getKey();
+	        List<Tuple> commentsList = entry.getValue();
+
+	        System.out.println("Image ID: " + imageId);
+	        for (Tuple comment : commentsList) {
+	            System.out.println("Username: " + comment.getKey() + ", Comment: " + comment.getValue());
+	        }
+	        System.out.println(); // Aggiungi una linea vuota tra i diversi imageId
+	    }
+	    */
+		
+		HashMap<Image, List<Tuple>> imagesWithComments = new HashMap<>();
+		for (Image x : images) {
+			if (allComments.containsKey(x.getId()))		imagesWithComments.put(x, allComments.get(x.getId()));
+			else	imagesWithComments.put(x, null);
+		}
+		
+		for (Map.Entry<Image, List<Tuple>> entry : imagesWithComments.entrySet()) {
+			String title = entry.getKey().getTitle();
+	        Integer imageId = entry.getKey().getId();
+	        List<Tuple> commentsList = entry.getValue();
+
+	        System.out.println("Image ID: " + imageId + ", Title: " + title);
+	        if (commentsList != null) {
+	        	for (Tuple comment : commentsList) {
+		            System.out.println("Username: " + comment.getKey() + ", Comment: " + comment.getValue());
+		        }
+		        System.out.println(); // Aggiungi una linea vuota tra i diversi imageId
+	        }
+	        
+	    }
 		
 		// JSON serialization
 		response.setStatus(HttpServletResponse.SC_OK);
@@ -135,6 +191,8 @@ public class GoToAlbumPage extends HttpServlet {
 		jsonObject.put("creator", returnedMessage.getInfo().get(0));
 		jsonObject.put("albumTitle", returnedMessage.getInfo().get(1));
 		jsonObject.put("images", images);
+		jsonObject.put("comments", allComments);
+
 
 		String json = gson.toJson(jsonObject);
 		response.getWriter().write(json);

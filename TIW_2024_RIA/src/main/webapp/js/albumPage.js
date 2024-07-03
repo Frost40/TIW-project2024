@@ -16,6 +16,7 @@ function AlbumPage(pageOrchestrator) {
     let currentPage = 0;
     const imagesPerPage = 5;
     let albumId;
+    let imagesWithComments = new Map();
 
     //Adding listeners
     goToHomeButton.addEventListener('click', function() {
@@ -55,10 +56,24 @@ function AlbumPage(pageOrchestrator) {
                 switch (x.status) {
                     case 200:
                         var jsonObject = JSON.parse(message);
+                        
+                        console.log(jsonObject);
                         var albumCreator = jsonObject.creator;
                         var albumTitle = jsonObject.albumTitle;
+                        allComments = jsonObject.comments;
                         images = jsonObject.images;
-
+                        
+						for (let x of images) {
+						    // Controllo se allComments contiene commenti per l'immagine corrente
+						    if (allComments.hasOwnProperty(x.id)) {
+						        imagesWithComments.set(x, allComments[x.id]);
+						    } else {
+						        imagesWithComments.set(x, null);
+						    }
+						}
+                        // Estrai le chiavi (nomi delle immagini)
+		                console.log(imagesWithComments);
+		
                         setAlbumTitle(albumTitle, albumCreator);
                         updateImagesGrid();
                         populateOrderImageColumn(); // Popola la colonna con i titoli delle immagini
@@ -125,7 +140,7 @@ function AlbumPage(pageOrchestrator) {
 
             // Aggiungi listener per l'immagine e il titolo
             img.addEventListener('mouseover', function() {
-                pageOrchestrator.showPage("image", albumId, image.id);
+                pageOrchestrator.showPage("image", albumId, image, imagesWithComments.get(image));
             });
 
             imageLink.appendChild(img);
