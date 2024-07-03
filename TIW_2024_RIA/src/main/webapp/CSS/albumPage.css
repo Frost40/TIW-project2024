@@ -120,12 +120,6 @@
     border: 1px dashed #ccc;
 }
 
-#imageDescription {
-    display: block;
-    visibility: visible;
-    color: inherit;
-}
-
 .navigation-buttons {
     display: flex;
     justify-content: space-between;

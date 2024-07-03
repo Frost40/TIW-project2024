@@ -9,7 +9,7 @@ function ImagePage(pageOrchestrator) {
     let imageContainer = document.getElementById("fullImage");
     let imageTitleHeader = document.getElementById("imageTitleHeader");
     let imageCreationDate = document.getElementById("imageCreationDate");
-    let imageDescription = document.getElementById("imageDescription");
+    let imageDescription = document.getElementById("imageDescriptionImagePage");
     let commentsWrapper = document.getElementById("commentsWrapper");
     let addCommentForm = document.getElementById("addCommentForm");
     let deleteImageForm = document.getElementById("deleteImageForm");
@@ -86,6 +86,15 @@ function ImagePage(pageOrchestrator) {
 
     function setImageInfo(image, canBeDeleted) {
 		console.log(image.description);
+		
+		const titleHeader = document.getElementById("imageTitleHeader");
+	    const creationDate = document.getElementById("imageCreationDate");
+	    const description = document.getElementById("imageDescription");
+	
+	    console.log("Title Header:", titleHeader);
+	    console.log("Creation Date:", creationDate);
+	    console.log("Description:", description);
+	    
         imageTitleHeader.textContent = image.title;
         imageCreationDate.textContent = "Created on: " + image.creationDate;
         imageDescription.textContent = "Description: " + image.description;
