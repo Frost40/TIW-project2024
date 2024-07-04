@@ -92,8 +92,6 @@ public class UpdateImageOrder extends HttpServlet {
             return;
         }
         
-        System.out.println(newImageOrderJson);
-        
         Optional<Integer> parsedId = parsingChecker(request, response, albumIdString);
         if (parsedId.isPresent())			albumId = parsedId.get();
 		else	return;
@@ -144,19 +142,21 @@ public class UpdateImageOrder extends HttpServlet {
             return;
         }
         
+        
         List<Integer> imageIdsInAlbum = imagesInAlbum.stream()
 									        		 .map(Image::getId)
 									                 .collect(Collectors.toList());
         List<Integer> imageIdsFromClient = listOfInfoImage.stream()
 										        		  .map(x -> x.getKey())
 										                  .collect(Collectors.toList());
+        
         if (imageIdsInAlbum.size() != imageIdsFromClient.size()) {
         	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().println("Some image went missing, unable to update album's order!");
             return;
         }
         
-        if(haveSameElements(imageIdsInAlbum, imageIdsFromClient)) {
+        if(!haveSameElements(imageIdsInAlbum, imageIdsFromClient)) {
         	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().println("One or more images do not exist!");
             return;
