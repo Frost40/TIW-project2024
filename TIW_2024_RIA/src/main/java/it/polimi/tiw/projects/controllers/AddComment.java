@@ -89,8 +89,7 @@ public class AddComment extends HttpServlet {
 		}
 		
 		//Checking if the imageIdString is valid
-		if(imageIdString == null) {
-			request.setAttribute("error", "Null imageId!");
+		if(imageIdString == null || imageIdString.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println("Null imageId!");
 			return;
@@ -122,7 +121,6 @@ public class AddComment extends HttpServlet {
         
 		//Adding the comment to database
 		CommentDAO commentDAO = new CommentDAO(connection);
-		List<Tuple> usernameAndComment;
 		try {
 			commentDAO.addComment(comment, currentUser.getId(), imageId);
 		
@@ -133,6 +131,8 @@ public class AddComment extends HttpServlet {
 			return;	
 		}
 		
+		//Getting all comments related to the image from database
+		List<Tuple> usernameAndComment;
 		try {
 			usernameAndComment = commentDAO.getCommentsByImageId(imageId);
 			

@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +25,7 @@ import it.polimi.tiw.projects.utils.PathHelper;
  * Servlet implementation class SignUp
  */
 @WebServlet("/SignUp")
+@MultipartConfig
 public class SignUp extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
@@ -126,23 +128,20 @@ public class SignUp extends HttpServlet {
 		if(email == null || username == null || password == null || repeatedPassword == null) {
 			messageToReturn.setResult("warning");
 			messageToReturn.setText("Some data is missing from the sign up module!");
-			
 			return messageToReturn;
 		}
 		
-		//Checking if the inserted email is actually a valid email address and assuring that its length is <= 255
-		if (!isAnEmail(email) || email.length()>255) {
+		//Checking if the inserted email is actually a valid email address and assuring that its length is <= 100
+		if (!isAnEmail(email) || email.length() > 100 || email.length() <= 0) {
 			messageToReturn.setResult("warning");
 			messageToReturn.setText("The email address is NOT valid!");
-
 			return messageToReturn;
 		}
 				
-		//Checking if the inserted username string has correct length (1-45)
-		if (username.length() <= 0 || username.length() > 45) {
+		//Checking if the inserted username string has correct length (1-20)
+		if (username.length() <= 0 || username.length() > 20) {
 			messageToReturn.setResult("warning");
-			messageToReturn.setText("Invalid username (a valid username has more than one character and less than 45)!");
-			
+			messageToReturn.setText("Invalid username (a valid username has more than one character and less than 20)!");
 			return messageToReturn;
 		}
 				
@@ -150,14 +149,12 @@ public class SignUp extends HttpServlet {
 		if (password.length() <= 0 || password.length() > 10) {
 			messageToReturn.setResult("warning");
 			messageToReturn.setText("Invalid password (a valid password has more than one character and less than 10)!");
-			
 			return messageToReturn;
 		}
 				
 		if (!password.equals(repeatedPassword)) {
 			messageToReturn.setResult("warning");
 			messageToReturn.setText("Password and repeat password field not equal!");
-			
 			return messageToReturn;
 		}
 				
@@ -170,14 +167,12 @@ public class SignUp extends HttpServlet {
 		} catch (SQLException e) {
 			messageToReturn.setResult("error");
 			messageToReturn.setText(e.getMessage());
-			
 			return messageToReturn;
 		}
 				
 		if(user != null) {
 			messageToReturn.setResult("unauthorized");
 			messageToReturn.setText("Email already in use!");
-			
 			return messageToReturn;
 		}
 			
@@ -190,14 +185,12 @@ public class SignUp extends HttpServlet {
 		} catch (SQLException e) {
 			messageToReturn.setResult("error");
 			messageToReturn.setText(e.getMessage());
-			
 			return messageToReturn;
 		}
 				
 		if(user != null) {
 			messageToReturn.setResult("unauthorized");
 			messageToReturn.setText("Username already taken");
-		
 			return messageToReturn;
 		}
 		

@@ -71,7 +71,7 @@ public class GoToImagePage extends HttpServlet {
 		String imageIdString = request.getParameter("imageId");
 		int imageId;
 		
-		if(imageIdString == null) {
+		if(imageIdString == null || imageIdString.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println("Null imageId!");
 			return;

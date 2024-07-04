@@ -58,7 +58,6 @@ public class Login extends HttpServlet {
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
-	@SuppressWarnings("unused")
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String id    = request.getParameter("id");
 		String password = request.getParameter("password");
@@ -74,10 +73,22 @@ public class Login extends HttpServlet {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
 			response.getWriter().println("Missing parameter");
 			return;
-		}
+		}	
 		
 		if(isAnEmail(id)) {
 			email = id;
+			
+			if (email.length()>255 || email.length()<0) {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
+				response.getWriter().println("Invalid email!");
+				return;
+			}
+			
+			if (password.length() <= 0 || password.length() > 10) {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
+				response.getWriter().println("Invalid password");
+				return;
+			}	
 			
 			try {
 				user = userDAO.authenticationViaEmail(email, password);
@@ -90,12 +101,24 @@ public class Login extends HttpServlet {
 
 			if(user == null) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getWriter().println("Email is incorrect");
+				response.getWriter().println("Email or password is incorrect");
 				return;
 			}
 			
 		} else {
 			username = id;
+			
+			if (username.length()>20 || username.length()<0) {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
+				response.getWriter().println("Invalid username!");
+				return;
+			}
+			
+			if (password.length() <= 0 || password.length() > 10) {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
+				response.getWriter().println("Invalid password");
+				return;
+			}	
 			
 			try {
 				user = userDAO.authenticationViaUsername(username, password);
@@ -108,7 +131,7 @@ public class Login extends HttpServlet {
 			
 			if(user == null) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getWriter().println("Username is incorrect");
+				response.getWriter().println("Username or password is incorrect");
 				return;
 			}
 		}

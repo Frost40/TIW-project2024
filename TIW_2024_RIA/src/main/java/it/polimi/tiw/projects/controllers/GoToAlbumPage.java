@@ -69,13 +69,14 @@ public class GoToAlbumPage extends HttpServlet {
 		String albumIdString = request.getParameter("albumId");
 		int albumId;
 
-		if(albumIdString == null) {
+		if(albumIdString == null || albumIdString.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
 			response.getWriter().println("Null albumId!");
 			return;		
 		}
 		
-		if (parsingChecker(request, response, albumIdString).isPresent())			albumId = parsingChecker(request, response, albumIdString).get();
+		Optional<Integer> parsedId = parsingChecker(request, response, albumIdString);
+		if (parsedId.isPresent())			albumId = parsedId.get();
 		else	return;
 		
 		if(albumId < 0) {
@@ -114,6 +115,12 @@ public class GoToAlbumPage extends HttpServlet {
 			response.getWriter().println(e.getMessage());
 			return;
 		}
+		
+		if (returnedMessage == null) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().println("An error occured while getting info related to 'albumId' equals to " + albumId);
+			return;
+		}
 
 		//Getting images in 'albumId'
 		ImageAlbumLinkDAO imageAlbumLinkDAO = new ImageAlbumLinkDAO(connection);
@@ -134,9 +141,7 @@ public class GoToAlbumPage extends HttpServlet {
 		List<Integer> imageIds = images.stream()
                 .map(Image::getId)
                 .collect(Collectors.toList());
-		for(Integer x : imageIds) {
-			System.out.println(x + ", ");
-		}
+
 		try {
 			allComments = commentDAO.getAllComments(imageIds);
 			
@@ -146,19 +151,6 @@ public class GoToAlbumPage extends HttpServlet {
 			response.getWriter().println(e.getMessage());
 			return;	
 		}
-		
-		/*
-		for (Map.Entry<Integer, List<Tuple>> entry : allComments.entrySet()) {
-	        Integer imageId = entry.getKey();
-	        List<Tuple> commentsList = entry.getValue();
-
-	        System.out.println("Image ID: " + imageId);
-	        for (Tuple comment : commentsList) {
-	            System.out.println("Username: " + comment.getKey() + ", Comment: " + comment.getValue());
-	        }
-	        System.out.println(); // Aggiungi una linea vuota tra i diversi imageId
-	    }
-	    */
 		
 		HashMap<Image, List<Tuple>> imagesWithComments = new HashMap<>();
 		for (Image x : images) {

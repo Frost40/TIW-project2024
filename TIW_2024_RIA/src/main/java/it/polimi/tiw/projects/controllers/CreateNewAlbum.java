@@ -77,6 +77,12 @@ public class CreateNewAlbum extends HttpServlet {
             response.getWriter().println("Null or empty album title!");
             return;
         }
+        
+        if (albumTitle.length() <= 0 || albumTitle.length() > 45) {
+        	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().println("Invalid album title (a valid title has more than one character and less than 45)!");
+            return;
+        }
 
         if (selectedImagesJson == null || selectedImagesJson.isEmpty()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -114,8 +120,9 @@ public class CreateNewAlbum extends HttpServlet {
         }
         
         ImageDAO imageDAO = new ImageDAO(connection);
+        List<TupleOfInteger> listOfInfoImageCompleted;
         try {
-        	listOfInfoImage = imageDAO.getCreationDates(listOfInfoImage);
+        	listOfInfoImageCompleted = imageDAO.getCreationDates(listOfInfoImage);
     		
         //If an error occurred during the process the user is redirected to errorPage
         } catch (SQLException e) {
@@ -124,11 +131,17 @@ public class CreateNewAlbum extends HttpServlet {
             return;
         }
         
-        listOfInfoImage = assignOrderBasedOnTimestamp(listOfInfoImage);
+        if (listOfInfoImageCompleted.size() != listOfInfoImage.size()) {
+        	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().println("One or more image do not exist!");
+            return;
+        }
+        
+        listOfInfoImageCompleted = assignOrderBasedOnTimestamp(listOfInfoImageCompleted);
         
         AlbumDAO albumDAO = new AlbumDAO(connection);
         try {
-            albumDAO.createAlbumWithImages(albumTitle, currentUser.getId(), listOfInfoImage);
+            albumDAO.createAlbumWithImages(albumTitle, currentUser.getId(), listOfInfoImageCompleted);
     	
         //If an error occurred during the process the user is redirected to errorPage
         } catch (SQLException e) {
@@ -144,12 +157,8 @@ public class CreateNewAlbum extends HttpServlet {
 		//If an error occurred during the process the user is redirected to errorPage
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().println("Error while creating album: " + e.getMessage());
+            response.getWriter().println("Error while getting your albums from database: " + e.getMessage());
             return;
-        }
-        
-        for(Album x : myAlbums) {
-        	System.out.println(x.getId() + ", " + x.getTitle() + "," + x.getCreationDate() + "," + x.getUserId());
         }
         
         // JSON serialization

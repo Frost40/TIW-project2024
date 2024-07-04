@@ -3,15 +3,12 @@ package it.polimi.tiw.projects.controllers;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -31,14 +28,12 @@ import it.polimi.tiw.projects.dao.AlbumDAO;
 import it.polimi.tiw.projects.dao.ImageAlbumLinkDAO;
 import it.polimi.tiw.projects.dao.ImageDAO;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
-import it.polimi.tiw.projects.utils.PathHelper;
 
 @WebServlet("/UploadImage")
 @MultipartConfig
 public class UploadImage extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private Connection connection;      
-    private static final Logger LOGGER = Logger.getLogger(UploadImage.class.getName());
     private String imageStorage;
 
     public UploadImage() {
@@ -60,16 +55,17 @@ public class UploadImage extends HttpServlet {
         Part filePart = request.getPart("image");
         String imageTitle = request.getParameter("title");
         String imageDescription = request.getParameter("description");
+        
         HttpSession session = request.getSession();
         User currentUser = (User) session.getAttribute("currentUser");
         
-        if (imageTitle.length() <= 0 || imageTitle.length() > 45) {            
+        if (imageTitle == null || imageTitle.length() <= 0 || imageTitle.length() > 45) {            
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
 			response.getWriter().println("Invalid title (a valid title has more than one character and less than 45)!");
 			return;
 		}
 
-        if (imageDescription.length() <= 0 || imageDescription.length() > 255) {            
+        if (imageDescription == null || imageDescription.length() <= 0 || imageDescription.length() > 255) {            
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
 			response.getWriter().println("Invalid description (a valid description has more than one character and less than 255)!");
 			return;        
@@ -84,7 +80,7 @@ public class UploadImage extends HttpServlet {
         // Starting the process to save the image in server storage
         if(!filePart.getContentType().startsWith("image")) {
         	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
-			response.getWriter().println("File format not permitted!");
+			response.getWriter().println("File's format not permitted!");
 			return;        
 		}
         
@@ -92,7 +88,7 @@ public class UploadImage extends HttpServlet {
         if (!imageStorage.endsWith(File.separator)) {
         	imageStorage += File.separator;
         }
-        String fileName = imageTitle + ".jpg";
+        String fileName = removeSpecialCharacters(imageTitle) + ".jpg";
         fileName = fieNameGenerator(imageStorage, fileName);
 
         //InputStream fileContent = filePart.getInputStream();
@@ -114,7 +110,7 @@ public class UploadImage extends HttpServlet {
         ImageDAO imageDAO = new ImageDAO(connection);
         int imageId = 0;
         String path = "http://localhost:8080/imageStorage/" + fileName;
-
+        
         try {
             imageId = imageDAO.uploadImage(imageTitle, imageDescription, path, currentUser.getId());
             
@@ -126,7 +122,7 @@ public class UploadImage extends HttpServlet {
 
         if (imageId == 0) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			response.getWriter().println("An error occurred while retrieving image's id");
+			response.getWriter().println("An error occurred while retrieving newly added image's id");
             return;
         }
         
@@ -146,7 +142,7 @@ public class UploadImage extends HttpServlet {
 
         if (albumId == 0) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			response.getWriter().println("An error occurred while retrieving album's id");
+			response.getWriter().println("An error occurred while retrieving 'allPhotos' album's id");
             return;
         }
 
@@ -160,6 +156,7 @@ public class UploadImage extends HttpServlet {
 			return;
         }
         
+        //Sending updated list of image to client
         List<Image> images;
         try {
         	images = imageDAO.getImagesByUserId(currentUser.getId());
@@ -201,5 +198,15 @@ public class UploadImage extends HttpServlet {
         } while (file.exists());
 
         return newFileName;
+    }
+    
+    public static String removeSpecialCharacters(String input) {
+        String cleanedString = input.replaceAll("[^a-zA-Z0-9]", "");
+        
+        if (cleanedString.isEmpty()) {
+            return "placeHolder";
+        }
+        
+        return cleanedString;
     }
 }

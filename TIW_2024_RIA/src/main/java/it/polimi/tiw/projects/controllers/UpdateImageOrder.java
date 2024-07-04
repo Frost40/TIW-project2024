@@ -5,8 +5,11 @@ import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -23,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import it.polimi.tiw.projects.beans.Image;
 import it.polimi.tiw.projects.dao.ImageAlbumLinkDAO;
+import it.polimi.tiw.projects.dao.ImageDAO;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.TupleOfInteger;
 
@@ -90,7 +94,8 @@ public class UpdateImageOrder extends HttpServlet {
         
         System.out.println(newImageOrderJson);
         
-        if (parsingChecker(request, response, albumIdString).isPresent())			albumId = parsingChecker(request, response, albumIdString).get();
+        Optional<Integer> parsedId = parsingChecker(request, response, albumIdString);
+        if (parsedId.isPresent())			albumId = parsedId.get();
 		else	return;
         
         if (albumId < 0) {
@@ -128,8 +133,33 @@ public class UpdateImageOrder extends HttpServlet {
             return;
         }
         
-        for (TupleOfInteger x : listOfInfoImage) {
-        	System.out.println("id: " + x.getKey() + "oder: " + x.getValue());
+        ImageDAO imageDAO = new ImageDAO(connection);
+        List<Image> imagesInAlbum;
+        try {
+        	imagesInAlbum = imageDAO.getImagesByAlbumId(albumId);
+        	
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().println("Error while updating the images' order in the album: " + e.getMessage());
+            return;
+        }
+        
+        List<Integer> imageIdsInAlbum = imagesInAlbum.stream()
+									        		 .map(Image::getId)
+									                 .collect(Collectors.toList());
+        List<Integer> imageIdsFromClient = listOfInfoImage.stream()
+										        		  .map(x -> x.getKey())
+										                  .collect(Collectors.toList());
+        if (imageIdsInAlbum.size() != imageIdsFromClient.size()) {
+        	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().println("Some image went missing, unable to update album's order!");
+            return;
+        }
+        
+        if(haveSameElements(imageIdsInAlbum, imageIdsFromClient)) {
+        	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().println("One or more images do not exist!");
+            return;
         }
         
         ImageAlbumLinkDAO imageAlbumLinkDAO = new ImageAlbumLinkDAO(connection);
@@ -146,6 +176,12 @@ public class UpdateImageOrder extends HttpServlet {
         response.getWriter().println("Order update successfully!");
 
 	}
+	
+	public static boolean haveSameElements(List<?> list1, List<?> list2) {
+        Set<?> set1 = new HashSet<>(list1);
+        Set<?> set2 = new HashSet<>(list2);
+        return set1.equals(set2);
+    }
 	
 	private Optional<Integer> parsingChecker(HttpServletRequest request, HttpServletResponse response,
             String stringToParse) throws ServletException, IOException {

@@ -56,7 +56,6 @@ function AlbumPage(pageOrchestrator) {
                 switch (x.status) {
                     case 200:
                         var jsonObject = JSON.parse(message);
-                        
                         console.log(jsonObject);
                         var albumCreator = jsonObject.creator;
                         var albumTitle = jsonObject.albumTitle;
@@ -71,9 +70,7 @@ function AlbumPage(pageOrchestrator) {
 						        imagesWithComments.set(x, null);
 						    }
 						}
-                        // Estrai le chiavi (nomi delle immagini)
-		                console.log(imagesWithComments);
-		
+						
                         setAlbumTitle(albumTitle, albumCreator);
                         updateImagesGrid();
                         populateOrderImageColumn(); // Popola la colonna con i titoli delle immagini
@@ -289,6 +286,7 @@ function AlbumPage(pageOrchestrator) {
 
     // Funzione per nascondere la pagina
     this.hide = function() {
+		imagesGrid.innerHTML = ""; // Cleaning the grid
         albumPageDiv.style.display = "none";
     };
 }

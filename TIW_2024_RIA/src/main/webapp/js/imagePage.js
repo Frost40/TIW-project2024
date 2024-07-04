@@ -39,6 +39,8 @@ function ImagePage(user, pageOrchestrator) {
         albumId = albumIdFromAlbumPage;
         imageComments = imageCommentsFromAlbum;
         
+        if(image === null)	return;
+        
         console.log(albumId);
         console.log(image);
         console.log(imageComments);
@@ -62,17 +64,7 @@ function ImagePage(user, pageOrchestrator) {
         imageContainer.alt = "Image";
     }
 
-    function setImageInfo(image, canBeDeleted) {
-		console.log(image.description);
-		
-		const titleHeader = document.getElementById("imageTitleHeader");
-	    const creationDate = document.getElementById("imageCreationDate");
-	    const description = document.getElementById("imageDescription");
-	
-	    console.log("Title Header:", titleHeader);
-	    console.log("Creation Date:", creationDate);
-	    console.log("Description:", description);
-	    
+    function setImageInfo(image, canBeDeleted) {    
         imageTitleHeader.textContent = image.title;
         imageCreationDate.textContent = "Created on: " + image.creationDate;
         imageDescription.textContent = "Description: " + image.description;
@@ -126,7 +118,7 @@ function ImagePage(user, pageOrchestrator) {
 	            var message = x.responseText;
 	            switch (x.status) {
 	                case 200:
-	                    showSuccessAlert("Commento aggiunto con successo!");
+	                    showAlert("Commento aggiunto con successo!");
 	                    var jsonObject = JSON.parse(message);
 	                    var comments = jsonObject.comments;
 	                    setComments(comments);
@@ -134,15 +126,15 @@ function ImagePage(user, pageOrchestrator) {
 	                    break;
 	
 	                case 400: // bad request
-	                    showErrorAlert(message);
+	                    showAlert(message);
 	                    break;
 	
 	                case 401: // unauthorized
-	                    showErrorAlert(message);
+	                    showAlert(message);
 	                    break;
 	
 	                case 500: // server error
-	                    showErrorAlert(message);
+	                    showAlert(message);
 	                    break;
 	
 	                default:
@@ -166,15 +158,15 @@ function ImagePage(user, pageOrchestrator) {
 		                    break;
 		
 		                case 400: // bad request
-		                    showErrorAlert(message);
+		                    showAlert(message);
 		                    break;
 		
 		                case 401: // unauthorized
-		                    showErrorAlert(message);
+		                    showAlert(message);
 		                    break;
 		
 		                case 500: // server error
-		                    showErrorAlert(message);
+		                    showAlert(message);
 		                    break;
 		
 		                default:
@@ -205,6 +197,8 @@ function ImagePage(user, pageOrchestrator) {
             self.closeModal();
             imageModalContent.removeEventListener('mouseleave', self.closeModalOnMouseLeave);
         }
+        
+		pageOrchestrator.showPage("album", albumId);
     };
 
     // Function to hide the page

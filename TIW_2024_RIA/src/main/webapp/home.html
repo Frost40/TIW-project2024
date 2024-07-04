@@ -18,40 +18,45 @@
 <body>
     <!-- Home Page Content -->
     <div id="homePageDiv" class="section">
-        <div class="header">
-            <h1>Welcome to your HomePage, <span id="username"></span></h1>
-            <a id="logoutButtonHome" class="logout" href="#">
-                <img src="Icons/logout.png" alt="Logout" class="logout-icon">
+    <div class="header-div">
+        <h1 class="header-title">Welcome to your HomePage, <span id="username"></span></h1>
+        
+        <div class="header-icons">
+            <a id="logoutButtonHome" class="header-icon" href="#">
+                <img src="Icons/logout.png" alt="Logout">
             </a>
         </div>
+    </div>
 
-        <div class="form-container">
-            <div class="upload-image form-box">
-                <h2>Upload New Image</h2>
-                <form id="uploadImageForm" method="POST" enctype="multipart/form-data">
-                    <input type="file" id="imageUpload" name="image" accept="image/*" required>
-                    <label for="imageTitle">Image Title</label>
-                    <input type="text" id="imageTitle" name="title" maxlength="45" placeholder="Title (max 45 characters)" required>
-                    <label for="imageDescription">Image Description</label>
-                    <textarea id="imageDescription" name="description" maxlength="250" placeholder="Description (max 250 characters)"></textarea>
-                    <button type="submit">Upload</button>
-                </form>
-                <div id="uploadWarning" class="warning"></div>
-            </div>
-
-            <div class="create-album form-box">
-                <h2>Create New Album</h2>
-                <div class="images-scrollbox">
-                    <form id="createAlbumForm" method="POST">
-                        <div id="imageList"></div>
-                        <input type="text" name="albumTitle" placeholder="Album Title" maxlength="45" required>
-                        <button id="createButton" type="submit">Create</button>
-                    </form>
-                </div>
-                <div id="albumCreationWarning" class="warning"></div>
-            </div>
+    <div class="form-container">
+        <div class="upload-image form-box gossamer-div">
+            <h2>Upload New Image</h2>
+            <form id="uploadImageForm" method="POST" enctype="multipart/form-data">
+                <input type="file" id="imageUpload" name="image" accept="image/*" required>
+                <label for="imageTitle">Image Title</label>
+                <input type="text" id="imageTitle" name="title" maxlength="45" placeholder="Title (max 45 characters)" required>
+                <label for="imageDescription">Image Description</label>
+                <textarea id="imageDescription" name="description" maxlength="250" placeholder="Description (max 250 characters)"></textarea>
+                <button type="submit">Upload</button>
+            </form>
+            <div id="uploadWarning" class="warning"></div>
         </div>
 
+        <div class="create-album form-box gossamer-div">
+            <h2>Create New Album</h2>
+            <div class="images-scrollbox"></div>
+            <div>
+                <form id="createAlbumForm" method="POST">
+                    <div id="imageList"></div>
+                    <input type="text" name="albumTitle" placeholder="Album Title" maxlength="45" required>
+                    <button id="createButton" type="submit">Create</button>
+                </form>
+            </div>
+            <div id="albumCreationWarning" class="warning"></div>
+        </div>
+    </div>
+
+    <div class="albums-container">
         <div class="user-albums form-box">
             <h2>Your Albums</h2>
             <div id="myAlbumsContainer" class="album-container-home"></div>
@@ -62,6 +67,7 @@
             <div id="othersAlbumsContainer" class="album-container-home"></div>
         </div>
     </div>
+</div>
 
     <!-- Album Page Content -->
     <div id="albumPageDiv" class="section" style="display:none;">
@@ -74,18 +80,22 @@
             </div>
         </div>
         
-        <div class="imageOrderSwapper-container gossamer-div"> 
-       		<div id="orderImageColumn" class="order-image-column"></div>
-        	<button id="saveOrder-btn" class="btn btn-gossamer btn-medium">Save order</button>
+        <div class="albumPage-content">
+	        <div class="imageOrderSwapper-container gossamer-div"> 
+	       		<div id="orderImageColumn" class="order-image-column"></div>
+	        	<button id="saveOrder-btn" class="save-order btn btn-gossamer btn-medium">Save order</button>
+	        </div>
+	        
+	        <div class="album-container">
+	            <div id="albumImages" class="image-grid"></div>
+	            <div class="navigation-buttons">
+	                <button id="previousButton" class="btn btn-gossamer btn-medium">Previous</button>
+	                <button id="nextButton" class="btn btn-gossamer btn-medium">Next</button>
+	            </div>
+	        </div>
         </div>
         
-        <div class="album-container">
-            <div id="albumImages" class="image-grid"></div>
-            <div class="navigation-buttons">
-                <button id="previousButton" class="btn btn-gossamer btn-medium">Previous</button>
-                <button id="nextButton" class="btn btn-gossamer btn-medium">Next</button>
-            </div>
-        </div>
+        
     </div>
 
    <!-- Modal for Image Page -->

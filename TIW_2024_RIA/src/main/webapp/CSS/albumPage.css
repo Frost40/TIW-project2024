@@ -1,7 +1,23 @@
 /* albumPage.css */
 
+.albumPage-content {
+    display: flex;
+    width: 100%;
+    margin: 30px auto 0 auto;
+    gap: 10px;
+}
+
 .album-container {
-    width: 80%;
+    flex: 3; /* Prende 4/5 dello spazio disponibile */
+    background-color: #fff;
+    padding: 40px 10px 0 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    border: 2px solid var(--normal-gossamer); /* Modifica il colore del bordo */
+}
+
+.imageOrderSwapper-container {
+    flex: 1; /* Prende 1/5 dello spazio disponibile */
     margin: auto;
     background-color: #fff;
     padding: 20px;
@@ -10,54 +26,16 @@
     border: 2px solid var(--normal-gossamer); /* Modifica il colore del bordo */
 }
 
-.alert-box {
-    position: fixed; /* Cambiato a fixed per centrare rispetto alla finestra */
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000;
-    background-color: var(--creamy-white);
-    padding: 20px;
-    border: 2px solid var(--dark-gossamer);
-    border-radius: 10px;
-    display: none; /* Non visibile per default */
-    font-family: 'Roboto', sans-serif; /* Font importato da Google Fonts */
-    font-size: 1rem;
-    line-height: 1.5;
-    color: #212529;
-    box-shadow: 0 1rem 3rem rgba(0,0,0,0.175); /* Effetto ombra */
-    text-align: center;
-    max-width: 300px; /* Larghezza massima dell'alert box */
-}
-
-.alert-box .alert-icon {
-    font-size: 3rem;
-    color: var(--dark-gossamer);
-    margin-bottom: 10px;
-}
-
-.alert-box .alert-message {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.alert-box .alert-submessage {
-    font-size: 1rem;
-}
-
-.alert-box .btn {
-    margin-top: 20px;
-}
-
 .order-image-column {
     display: flex;
     flex-direction: column;
-    height: 300px; /* Set a fixed height */
+    height: 400px; /* Set a fixed height */
     max-height: 300px; /* Prevent vertical expansion */
     width: 100%; /* Ensure full width of the container */    
     max-width: 400px; /* Prevent vertical expansion */
     overflow-y: auto; /* Enable vertical scrollbar */
+    overflow-x: auto;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
 .order-image-column::-webkit-scrollbar {
@@ -129,15 +107,150 @@
 .navigation-buttons button {
     padding: 8px 16px;
     border: none;
-    background-color: #007bff;
     color: #fff;
     cursor: pointer;
     border-radius: 4px;
 }
 
 .navigation-buttons button:hover {
-    background-color: #0056b3;
+    background-color: #348876;
 }
+
+/* albumPage.css */
+
+.albumPage-content {
+    display: flex;
+    width: 100%;
+    margin: 30px auto 0 auto;
+    gap: 10px;
+}
+
+.album-container {
+    flex: 3; /* Prende 4/5 dello spazio disponibile */
+    background-color: #fff;
+    padding: 40px 10px 0 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    border: 2px solid var(--normal-gossamer); /* Modifica il colore del bordo */
+}
+
+.imageOrderSwapper-container {
+    flex: 1; /* Prende 1/5 dello spazio disponibile */
+    margin: auto;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    border: 2px solid var(--normal-gossamer); /* Modifica il colore del bordo */
+}
+
+.order-image-column {
+    display: flex;
+    flex-direction: column;
+    height: 400px; /* Set a fixed height */
+    max-height: 300px; /* Prevent vertical expansion */
+    width: 100%; /* Ensure full width of the container */    
+    max-width: 400px; /* Prevent vertical expansion */
+    overflow-y: auto; /* Enable vertical scrollbar */
+    overflow-x: auto;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.order-image-column::-webkit-scrollbar {
+    width: 10px; /* Scrollbar width */
+    background-color: #f5f5f5; /* Scrollbar background color */
+}
+
+.order-image-column::-webkit-scrollbar-thumb {
+    background-color: var(--normal-gossamer); /* Scrollbar thumb color */
+    border-radius: 10px; /* Rounded scrollbar thumb */
+}
+
+.order-image-column::-webkit-scrollbar-track {
+    background-color: #f5f5f5; /* Scrollbar track background color */
+    border-radius: 10px; /* Rounded scrollbar track */
+}
+
+.image-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 10px;
+}
+
+.empty-slot {
+    background-color: #e0e0e0;
+    border: 1px dashed #ccc;
+    height: 200px;
+    width: 100%;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #aaa;
+}
+
+.image-slot {
+    flex: 1 1 18%; /* Si adatta a cinque elementi per riga, con un po' di spazio */
+    max-width: 18%; /* Limita la larghezza massima */
+    text-align: center;
+}
+
+.thumbnail {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.image-slot img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 4px;
+}
+
+.image-slot.empty {
+    background-color: #f0f0f0;
+    border: 1px dashed #ccc;
+}
+
+.navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.navigation-buttons button {
+    padding: 8px 16px;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.save-order {
+    display: block;
+    margin: auto;
+}
+
+.save-order:hover {
+    background-color: #348876;
+}
+
+/* Drag-and-Drop CSS */
+.title-item.dragging {
+    opacity: 0.5;
+}
+
+.title-item-placeholder {
+    height: 2px;
+    background-color: var(--dark-gossamer);
+    margin: 4px 0;
+    width: 100%;
+}
+
 
 /* Drag-and-Drop CSS */
 .title-item.dragging {

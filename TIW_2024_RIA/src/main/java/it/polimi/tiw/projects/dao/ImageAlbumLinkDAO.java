@@ -95,7 +95,7 @@ public class ImageAlbumLinkDAO {
 	}
 	
 	public void updateImageOrder(int albumId, List<TupleOfInteger> newOrderList) throws SQLException {
-        String performedAction = "updating image order in album";
+        String performedAction = " updating image order in album ";
         String updateOrderQuery = "UPDATE ImageAlbumLink SET chosenOrder = ? WHERE albumId = ? AND imageId = ?";
         PreparedStatement updateOrderStmt = null;
 

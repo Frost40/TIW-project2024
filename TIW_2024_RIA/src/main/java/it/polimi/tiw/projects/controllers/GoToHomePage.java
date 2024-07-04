@@ -69,6 +69,12 @@ public class GoToHomePage extends HttpServlet {
 			return;
 		}
 		
+		if (myAlbums == null || myAlbums.isEmpty()) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().println("An error occured while getting your albums from database");
+			return;
+		}
+		
 		try {
 			othersAlbums = albumDAO.getAlbumsNotFromUser(currentUser.getId());
 
