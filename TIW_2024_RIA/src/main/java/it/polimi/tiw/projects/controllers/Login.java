@@ -78,7 +78,7 @@ public class Login extends HttpServlet {
 		if(isAnEmail(id)) {
 			email = id;
 			
-			if (email.length()>255 || email.length()<0) {
+			if (email.length() > 255 || email.length() <= 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
 				response.getWriter().println("Invalid email!");
 				return;
@@ -108,7 +108,7 @@ public class Login extends HttpServlet {
 		} else {
 			username = id;
 			
-			if (username.length()>20 || username.length()<0) {
+			if (username.length()>20 || username.length() <= 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
 				response.getWriter().println("Invalid username!");
 				return;

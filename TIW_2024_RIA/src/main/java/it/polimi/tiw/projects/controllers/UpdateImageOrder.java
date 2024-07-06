@@ -76,7 +76,6 @@ public class UpdateImageOrder extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String albumIdString = request.getParameter("albumId");
 		String newImageOrderJson = request.getParameter("orderedIds");
-        List<Integer> newImageOrder = new ArrayList<>();
         List<TupleOfInteger> listOfInfoImage = new ArrayList<>();
         int albumId;
 
