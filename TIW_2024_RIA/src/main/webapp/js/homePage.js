@@ -63,7 +63,7 @@ function HomePage(user, pageOrchestrator) {
 	                        break;
 	                    
 	                    default:
-	                        pageOrchestrator.showError(message);
+                            pageOrchestrator.showPage("login");
 	                        break;
 	                }
 	            }
@@ -93,20 +93,24 @@ function HomePage(user, pageOrchestrator) {
                             break;
                         
                         case 400: // bad request
-		                	showErrorAlert(message); 
-                            break;
+		                	pageOrchestrator.showPage("login");
+	                        showErrorAlert(message); 
+	                        break;
                         
                         case 401: // unauthorized
-		                	showErrorAlert(message); 
-                            break;
+		                	pageOrchestrator.showPage("login");
+	                        showErrorAlert(message); 
+	                        break;
                         
                         case 500: // server error
-		                	showErrorAlert(message); 
-                            break;
+		                	pageOrchestrator.showPage("login");
+	                        showErrorAlert(message); 
+	                        break;
                         
                         default:
-                            pageOrchestrator.showError(message);
-                            break;
+                            pageOrchestrator.showPage("login");
+	                        showErrorAlert(message); 
+	                        break;
                     }
                 }
             }
@@ -304,7 +308,7 @@ function createAlbum(form) {
                     break;
 
                 default:
-                    pageOrchestrator.showError(message);
+                    pageOrchestrator.showPage("login");
                     break;
             }
         }

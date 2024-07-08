@@ -104,6 +104,12 @@
     margin-top: 20px;
 }
 
+.navigation-buttons form {
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+}
+
 .navigation-buttons button {
     padding: 8px 16px;
     border: none;
@@ -114,6 +120,14 @@
 
 .navigation-buttons button:hover {
     background-color: #348876;
+}
+
+.next-button {
+    margin-left: auto;
+}
+
+.prev-button {
+    margin-right: auto;
 }
 
 /* albumPage.css */

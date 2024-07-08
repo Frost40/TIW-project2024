@@ -24,7 +24,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Image;
+import it.polimi.tiw.projects.dao.AlbumDAO;
 import it.polimi.tiw.projects.dao.ImageAlbumLinkDAO;
 import it.polimi.tiw.projects.dao.ImageDAO;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
@@ -101,6 +103,25 @@ public class UpdateImageOrder extends HttpServlet {
             return;
         }
         
+        //Assuring the album exists
+		AlbumDAO albumDAO = new AlbumDAO(connection);
+		Album album;
+		try {
+			album = albumDAO.getAlbumById(albumId);
+			
+		//If an error occurred during the process the user is redirected to errorPage
+		} catch (SQLException e) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			response.getWriter().println(e.getMessage());
+			return;
+		}
+		
+		if(album == null) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().println("The album you are trying to access does not exists");
+			return;
+		}
+  		
         //Reading and extracting data from the JSON array
         try (StringReader stringReader = new StringReader(newImageOrderJson);
              JsonReader jsonReader = Json.createReader(stringReader)) {

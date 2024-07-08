@@ -16,11 +16,14 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Image;
+import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.AlbumDAO;
 import it.polimi.tiw.projects.dao.CommentDAO;
 import it.polimi.tiw.projects.dao.ImageAlbumLinkDAO;
@@ -66,6 +69,9 @@ public class GoToAlbumPage extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		User currentUser    = (User)session.getAttribute("currentUser");
+		
 		String albumIdString = request.getParameter("albumId");
 		int albumId;
 
@@ -101,6 +107,12 @@ public class GoToAlbumPage extends HttpServlet {
 		if(album == null) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			response.getWriter().println("The album you are trying to access does not exists");
+			return;
+		}
+		
+		if(album.getTitle().equals("allPhotos") && album.getUserId() != currentUser.getId()) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().println("You are not authorized to open thi album!");
 			return;
 		}
 		

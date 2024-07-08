@@ -108,7 +108,7 @@ public class Login extends HttpServlet {
 		} else {
 			username = id;
 			
-			if (username.length()>20 || username.length() <= 0) {
+			if (username.length() > 20 || username.length() <= 0 || containsSpecialCharacters(username)) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);		
 				response.getWriter().println("Invalid username!");
 				return;
@@ -154,5 +154,11 @@ private boolean isAnEmail(String emailAddress) {
     Pattern pattern = Pattern.compile(EMAIL_REGEX);
     Matcher matcher = pattern.matcher(emailAddress);
     return matcher.matches();
+}
+
+public static boolean containsSpecialCharacters(String input) {
+    String specialCharactersPattern = "[^a-zA-Z0-9]";
+
+    return input != null && input.matches(".*" + specialCharactersPattern + ".*");
 }
 }

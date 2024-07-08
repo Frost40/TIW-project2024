@@ -41,15 +41,9 @@ function ImagePage(user, pageOrchestrator) {
         
         if(image === null)	return;
         
-        console.log(albumId);
-        console.log(image);
-        console.log(imageComments);
-        
         setImage(image);
         setComments(imageComments);
         
-        console.log(currentUser);
-
 		if (currentUser.id === image.userId)		setImageInfo(image, true);
 		else		setImageInfo(image, false);
         
@@ -138,7 +132,7 @@ function ImagePage(user, pageOrchestrator) {
 	                    break;
 	
 	                default:
-	                    pageOrchestrator.showError(message);
+                    	pageOrchestrator.showPage("login");
 	                    break;
 	            }
 	        }
@@ -170,7 +164,7 @@ function ImagePage(user, pageOrchestrator) {
 		                    break;
 		
 		                default:
-		                    pageOrchestrator.showError(message);
+                    		pageOrchestrator.showPage("login");
 		                    break;
 		            }
 		        }

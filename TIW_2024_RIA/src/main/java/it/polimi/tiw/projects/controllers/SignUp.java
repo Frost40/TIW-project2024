@@ -139,9 +139,9 @@ public class SignUp extends HttpServlet {
 		}
 				
 		//Checking if the inserted username string has correct length (1-20)
-		if (username.length() <= 0 || username.length() > 20) {
+		if (username.length() <= 0 || username.length() > 20 || containsSpecialCharacters(username)) {
 			messageToReturn.setResult("warning");
-			messageToReturn.setText("Invalid username (a valid username has more than one character and less than 20)!");
+			messageToReturn.setText("Invalid username (a valid username has more than one character, less than 20 and has no special character)!");
 			return messageToReturn;
 		}
 				
@@ -206,5 +206,11 @@ private boolean isAnEmail(String emailAddress) {
 	    Matcher matcher = pattern.matcher(emailAddress);
 	    return matcher.matches();
 	}
+
+public static boolean containsSpecialCharacters(String input) {
+    String specialCharactersPattern = "[^a-zA-Z0-9]";
+
+    return input != null && input.matches(".*" + specialCharactersPattern + ".*");
+}
 
 }

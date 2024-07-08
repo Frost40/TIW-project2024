@@ -30,39 +30,46 @@
 
     <div class="form-container">
         <div class="upload-image form-box gossamer-div">
-            <h2>Upload New Image</h2>
-            <form id="uploadImageForm" method="POST" enctype="multipart/form-data">
-                <input type="file" id="imageUpload" name="image" accept="image/*" required>
-                <label for="imageTitle">Image Title</label>
-                <input type="text" id="imageTitle" name="title" maxlength="45" placeholder="Title (max 45 characters)" required>
-                <label for="imageDescription">Image Description</label>
-                <textarea id="imageDescription" name="description" maxlength="250" placeholder="Description (max 250 characters)"></textarea>
-                <button type="submit">Upload</button>
-            </form>
-            <div id="uploadWarning" class="warning"></div>
-        </div>
+		    <h2>Upload New Image</h2>
+		    <form id="uploadImageForm" method="POST" enctype="multipart/form-data">
+		        <div class="form-row">
+		            <input type="file" id="imageUpload" name="image" accept="image/*" required>
+		            <label for="imageTitle">Image Title</label>
+		            <input type="text" id="imageTitle" name="title" maxlength="45" placeholder="Title (max 45 characters)" required>
+		        </div>
+		        <div class="form-row">
+		            <label for="imageDescription">Image Description</label>
+		            <textarea id="imageDescription" name="description" maxlength="250" placeholder="Description (max 250 characters)"></textarea>
+		        </div>
+		        <button type="submit" class="btn centered-btn btn-gossamer btn-medium">Upload</button>
+		    </form>
+		    <div id="uploadWarning" class="warning"></div>
+		</div>
+
 
         <div class="create-album form-box gossamer-div">
-            <h2>Create New Album</h2>
-            <div class="images-scrollbox"></div>
-            <div>
-                <form id="createAlbumForm" method="POST">
-                    <div id="imageList"></div>
-                    <input type="text" name="albumTitle" placeholder="Album Title" maxlength="45" required>
-                    <button id="createButton" type="submit">Create</button>
-                </form>
-            </div>
-            <div id="albumCreationWarning" class="warning"></div>
-        </div>
+		    <h2>Create New Album</h2>
+		    <div class="images-scrollbox">
+		        <div id="imageList"></div>
+		    </div>
+		    <div class="album-creation-form">
+		        <form id="createAlbumForm" method="POST">
+		            <input type="text" name="albumTitle" placeholder="Album Title" maxlength="45" required>
+		            <button id="createButton" class="btn btn-gossamer btn-small" type="submit">Create</button>
+		        </form>
+		        <div id="albumCreationWarning" class="warning"></div>
+		    </div>
+		</div>
+
     </div>
 
     <div class="albums-container">
-        <div class="user-albums form-box">
+        <div class="user-albums form-box gossamer-div">
             <h2>Your Albums</h2>
             <div id="myAlbumsContainer" class="album-container-home"></div>
         </div>
 
-        <div class="others-albums form-box">
+        <div class="others-albums form-box gossamer-div">
             <h2>Others Albums</h2>
             <div id="othersAlbumsContainer" class="album-container-home"></div>
         </div>
@@ -89,8 +96,8 @@
 	        <div class="album-container">
 	            <div id="albumImages" class="image-grid"></div>
 	            <div class="navigation-buttons">
-	                <button id="previousButton" class="btn btn-gossamer btn-medium">Previous</button>
-	                <button id="nextButton" class="btn btn-gossamer btn-medium">Next</button>
+	                <button id="previousButton" class="btn btn-gossamer btn-medium prev-button">Precedenti</button>
+	                <button id="nextButton" class="btn btn-gossamer btn-medium next-button">Successive</button>
 	            </div>
 	        </div>
         </div>
@@ -108,8 +115,6 @@
 				    <div class="alert-message"></div>
 				    <button class="alert-button" id="alert-button">OK</button>
 				</div>
-
-
 	        
 	            <div class="content">
 	                <div class="image-container gossamer-div">

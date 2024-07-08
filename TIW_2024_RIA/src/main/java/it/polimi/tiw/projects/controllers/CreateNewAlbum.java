@@ -72,15 +72,15 @@ public class CreateNewAlbum extends HttpServlet {
         String selectedImagesJson = request.getParameter("selectedImages");
         List<TupleOfInteger> listOfInfoImage = new ArrayList<>();
 
-        if (albumTitle == null || albumTitle.isEmpty()) {
+        if (albumTitle == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().println("Null or empty album title!");
             return;
         }
         
-        if (albumTitle.length() <= 0 || albumTitle.length() > 45) {
+        if (albumTitle.length() <= 0 || albumTitle.length() > 45 || albumTitle.equals("allPhotos")) {
         	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().println("Invalid album title (a valid title has more than one character and less than 45)!");
+            response.getWriter().println("Invalid album title (a valid title has more than one character and less than 45 and can not be called 'allPhotos')!");
             return;
         }
 

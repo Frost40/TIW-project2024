@@ -71,6 +71,12 @@
                 registerWarningDiv.style.display = 'block';
                 return;
 			}
+			
+			if (containsSpecialCharacters(registerUsernameInput.value)) {
+				registerWarningDiv.textContent   = "The username can not contain special characters";
+                registerWarningDiv.style.display = 'block';
+                return;
+			}
             
             sendToServer(form, registerWarningDiv, 'SignUp', false);
         
@@ -122,9 +128,15 @@
 	                    break;
 	                    
 	                case 400: // bad request
-	                
+	                	error_div.textContent   = req.responseText;
+	                    error_div.style.display = 'block';
+	                    break;
+	                    
 	                case 401: // unauthorized
-	                
+	                	error_div.textContent   = req.responseText;
+	                    error_div.style.display = 'block';
+	                    break;
+	                    
 	                case 500: // server error
 	                    error_div.textContent   = req.responseText;
 	                    error_div.style.display = 'block';
@@ -137,4 +149,11 @@
             }
         });
     }
+    
+    function containsSpecialCharacters(input) {
+	    const specialCharactersPattern = /[^a-zA-Z0-9]/;
+	
+	    return input !== null && specialCharactersPattern.test(input);
+	}
+	
 })();

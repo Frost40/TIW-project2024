@@ -1,7 +1,7 @@
 function AlbumPage(pageOrchestrator) {
     this.pageOrchestrator = pageOrchestrator;
 
-    //Getting references of the HTML elements
+    // Getting references of the HTML elements
     let albumPageDiv = document.getElementById("albumPageDiv");
     let goToHomeButton = document.getElementById("homeButtonAlbumPage");
     let albumTitleDiv = document.getElementById("albumTitle");
@@ -18,7 +18,7 @@ function AlbumPage(pageOrchestrator) {
     let albumId;
     let imagesWithComments = new Map();
 
-    //Adding listeners
+    // Adding listeners
     goToHomeButton.addEventListener('click', function() {
         pageOrchestrator.showPage("home");
     });
@@ -44,8 +44,8 @@ function AlbumPage(pageOrchestrator) {
     // Funzione per aprire la Album page
     this.open = function(albumIdFromHomePage) {
         albumPageDiv.style.display = "";
-		albumId = albumIdFromHomePage;
-		        console.log(albumId);
+        albumId = albumIdFromHomePage;
+        console.log(albumId);
 
         // Construct query string
         var url = "GoToAlbumPage?albumId=" + encodeURIComponent(albumId);
@@ -61,16 +61,16 @@ function AlbumPage(pageOrchestrator) {
                         var albumTitle = jsonObject.albumTitle;
                         allComments = jsonObject.comments;
                         images = jsonObject.images;
-                        
-						for (let x of images) {
-						    // Controllo se allComments contiene commenti per l'immagine corrente
-						    if (allComments.hasOwnProperty(x.id)) {
-						        imagesWithComments.set(x, allComments[x.id]);
-						    } else {
-						        imagesWithComments.set(x, null);
-						    }
-						}
-						
+
+                        for (let x of images) {
+                            // Controllo se allComments contiene commenti per l'immagine corrente
+                            if (allComments.hasOwnProperty(x.id)) {
+                                imagesWithComments.set(x, allComments[x.id]);
+                            } else {
+                                imagesWithComments.set(x, null);
+                            }
+                        }
+
                         setAlbumTitle(albumTitle, albumCreator);
                         updateImagesGrid();
                         populateOrderImageColumn(); // Popola la colonna con i titoli delle immagini
@@ -92,7 +92,7 @@ function AlbumPage(pageOrchestrator) {
                         break;
 
                     default:
-                        pageOrchestrator.showError(message);
+                    	pageOrchestrator.showPage("login");
                         break;
                 }
             }
@@ -104,22 +104,22 @@ function AlbumPage(pageOrchestrator) {
     }
 
     function updateImagesGrid() {
-	    imagesGrid.innerHTML = ""; // Cleaning the grid
-	
-	    if (images === null || images.length === 0) {
-	        // Aggiungi 5 slot vuoti se non ci sono immagini
-	        for (let i = 0; i < imagesPerPage; i++) {
-	            let emptySlot = document.createElement("div");
-	            emptySlot.className = "image-slot empty-slot";
-	            imagesGrid.appendChild(emptySlot);
-	        }
-	
-	        previousButton.style.display = "none";
-	        nextButton.style.display = "none";
-	        return;
-	    }
-	
-	    let start = currentPage * imagesPerPage;
+        imagesGrid.innerHTML = ""; // Cleaning the grid
+
+        if (images === null || images.length === 0) {
+            // Aggiungi 5 slot vuoti se non ci sono immagini
+            for (let i = 0; i < imagesPerPage; i++) {
+                let emptySlot = document.createElement("div");
+                emptySlot.className = "image-slot empty-slot";
+                imagesGrid.appendChild(emptySlot);
+            }
+
+            previousButton.style.display = "none";
+            nextButton.style.display = "none";
+            return;
+        }
+
+        let start = currentPage * imagesPerPage;
         let end = Math.min(start + imagesPerPage, images.length);
 
         for (let i = start; i < end; i++) {
@@ -161,7 +161,6 @@ function AlbumPage(pageOrchestrator) {
         nextButton.style.display = end < images.length ? "inline-block" : "none";
     }
 
-
     // Funzione per popolare la colonna con i titoli delle immagini
     function populateOrderImageColumn() {
         orderImageColumn.innerHTML = ""; // Pulisci la colonna
@@ -180,16 +179,28 @@ function AlbumPage(pageOrchestrator) {
         let placeholder = document.createElement("div");
         placeholder.className = "title-item-placeholder";
 
-        orderImageColumn.addEventListener('dragstart', function(e) {
+        // Rimuovi eventuali listener esistenti
+        orderImageColumn.removeEventListener('dragstart', handleDragStart);
+        orderImageColumn.removeEventListener('dragover', handleDragOver);
+        orderImageColumn.removeEventListener('drop', handleDrop);
+        orderImageColumn.removeEventListener('dragend', handleDragEnd);
+
+        // Aggiungi nuovi listener
+        orderImageColumn.addEventListener('dragstart', handleDragStart);
+        orderImageColumn.addEventListener('dragover', handleDragOver);
+        orderImageColumn.addEventListener('drop', handleDrop);
+        orderImageColumn.addEventListener('dragend', handleDragEnd);
+
+        function handleDragStart(e) {
             draggedItem = e.target;
             e.dataTransfer.setData('text/html', e.target.outerHTML);
             e.dataTransfer.dropEffect = 'move';
             setTimeout(() => {
                 draggedItem.classList.add('dragging');
             }, 0);
-        });
+        }
 
-        orderImageColumn.addEventListener('dragover', function(e) {
+        function handleDragOver(e) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
 
@@ -197,11 +208,14 @@ function AlbumPage(pageOrchestrator) {
             if (target && target !== draggedItem && target.classList.contains('title-item')) {
                 let rect = target.getBoundingClientRect();
                 let next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                if (placeholder.parentNode) {
+                    placeholder.remove();
+                }
                 orderImageColumn.insertBefore(placeholder, next ? target.nextSibling : target);
             }
-        });
+        }
 
-        orderImageColumn.addEventListener('drop', function(e) {
+        function handleDrop(e) {
             e.preventDefault();
             if (draggedItem && placeholder.parentNode) {
                 orderImageColumn.insertBefore(draggedItem, placeholder);
@@ -210,15 +224,15 @@ function AlbumPage(pageOrchestrator) {
                 draggedItem = null;
                 updateImageOrder(); // Funzione per aggiornare l'ordine delle immagini
             }
-        });
+        }
 
-        orderImageColumn.addEventListener('dragend', function() {
+        function handleDragEnd() {
             placeholder.remove();
             if (draggedItem) {
                 draggedItem.classList.remove('dragging');
             }
             draggedItem = null;
-        });
+        }
     }
 
     // Funzione per aggiornare l'ordine delle immagini in base al drag and drop
@@ -234,9 +248,9 @@ function AlbumPage(pageOrchestrator) {
     function saveOrder() {
         let orderedItems = orderImageColumn.getElementsByClassName("title-item");
         let orderedIds = Array.from(orderedItems).map(item => item.dataset.id);
-        
+
         console.log(orderedIds);
-        
+
         // Creare un form virtuale
         var virtualForm = document.createElement("form");
 
@@ -277,7 +291,7 @@ function AlbumPage(pageOrchestrator) {
                         break;
 
                     default:
-                        pageOrchestrator.showError(message);
+                    	pageOrchestrator.showPage("login");
                         break;
                 }
             }
@@ -286,7 +300,7 @@ function AlbumPage(pageOrchestrator) {
 
     // Funzione per nascondere la pagina
     this.hide = function() {
-		imagesGrid.innerHTML = ""; // Cleaning the grid
+        imagesGrid.innerHTML = ""; // Cleaning the grid
         albumPageDiv.style.display = "none";
     };
 }
