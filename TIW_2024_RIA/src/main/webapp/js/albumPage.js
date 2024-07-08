@@ -13,7 +13,7 @@ function AlbumPage(pageOrchestrator) {
 
     // Dati della pagina
     let images = [];
-    let currentPage = 0;
+    let currentPage;
     const imagesPerPage = 5;
     let albumId;
     let imagesWithComments = new Map();
@@ -70,6 +70,8 @@ function AlbumPage(pageOrchestrator) {
                                 imagesWithComments.set(x, null);
                             }
                         }
+                        
+                        currentPage = 0;
 
                         setAlbumTitle(albumTitle, albumCreator);
                         updateImagesGrid();
