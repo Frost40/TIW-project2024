@@ -17,6 +17,8 @@ function AlbumPage(pageOrchestrator) {
     const imagesPerPage = 5;
     let albumId;
     let imagesWithComments = new Map();
+    let placeholder = document.createElement("div");
+
 
     // Adding listeners
     goToHomeButton.addEventListener('click', function() {
@@ -178,7 +180,6 @@ function AlbumPage(pageOrchestrator) {
         });
 
         let draggedItem = null;
-        let placeholder = document.createElement("div");
         placeholder.className = "title-item-placeholder";
 
         // Rimuovi eventuali listener esistenti
