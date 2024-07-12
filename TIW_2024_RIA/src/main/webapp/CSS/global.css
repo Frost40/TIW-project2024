@@ -156,7 +156,7 @@ hr{
     border-right: 0; /* reset border right, as input's one is already present */
     font-weight: 400;
     font-size: 0.75rem;
-    width: 10% !important;
+    width: 15% !important;
 }
 /*
     Colored divs
