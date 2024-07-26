@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+	<link rel="stylesheet" type="text/css" media="all" href="CSS/login.css" th:href="@{/CSS/login.css}" />
+	<link rel="stylesheet" type="text/css" media="all" href="CSS/global.css" th:href="@{/CSS/global.css}" />
+	<title>Login page</title>
+</head>
+<body>
+	<h1>Welcome to ImageGallery!</h1>
+	
+	<div class="login-div gossamer-div">
+		<div class="login-title">Insert your credentials to Login</div>
+		<form class="login-form" method="POST" th:action="@{/Login}">
+			<div class="form-group">
+				<label for="email">Username or email</label>
+				<input type="text" placeholder="Enter username or email" name="id" required maxlength="100">
+			</div>
+			<div class="form-group">
+				<label for="password">Password</label>
+				<input type="password" placeholder="Enter your password" name="password" required maxlength="10">
+			</div>
+			<button class="btn btn-large btn-gossamer" type="submit">Login</button>
+		</form>
+		<div class="warning-message" th:if="${warning}">
+			<span th:text="${warning}">Username or password not valid!</span>
+		</div>
+		<hr>
+		If you don't have an account 
+		<a class="register-link" th:href="@{/GoToSignUp}">Register</a> now!
+	</div>
+	
+</body>
+</html>

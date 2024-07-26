@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>Album Page</title>
+    <link rel="stylesheet" type="text/css" media="all" href="CSS/global.css" th:href="@{/CSS/global.css}" />
+    <link rel="stylesheet" media="all" type="text/css" href="CSS/albumPage.css" th:href="@{/CSS/albumPage.css}" />
+</head>
+<body>
+    <div class="header-div">
+        <h1 th:text="'Album ' + ${albumTitle} + ', created by ' + ${creator}" class="header-title"></h1>
+        <div class="header-icons">
+        	<a class="header-icon" th:href="@{/GoToHomePage}">
+            	<img src="Icons/home.png" alt="Home Page">
+       		 </a>
+        </div>
+    </div>
+
+    <div class="album-container">
+        <!-- Condizione con immagini -->
+		<div th:if="${images != null and !#lists.isEmpty(images)}" class="image-grid">
+		    <div class="image-slot" th:each="image : ${images}">
+		        <a th:href="@{/GoToImagePage(imageId=${image.id}, albumId=${albumId})}">
+		            <img th:src="${image.path}" alt="Thumbnail" class="thumbnail">
+		            <p th:text="${image.title}">Image Title</p>
+		        </a>
+		    </div>
+		    <!-- Aggiungi slot vuoti per arrivare a 5 -->
+		    <div class="image-slot empty" th:each="emptySlot, iterStat : ${#numbers.sequence(#lists.size(images) + 1, 5)}" 
+		        th:if="${#lists.size(images) < 5}">&nbsp;</div>
+		</div>
+		<!-- Condizione senza immagini -->
+		<div th:if="${images == null or #lists.isEmpty(images)}" class="image-grid">
+		    <div class="empty-slot" th:each="emptySlot, iterStat : ${#numbers.sequence(1, 5)}">&nbsp;</div>
+		</div>
+
+        <div class="navigation-buttons">
+		    <form th:action="@{/GoToAlbumPage}" method="get" th:if="${pageNumber != null and pageNumber > 0}">
+		        <input type="hidden" name="albumId" th:value="${albumId}" />
+		        <input type="hidden" name="pageNumber" th:value="${pageNumber != null ? pageNumber - 1 : 0}" />
+		        <button type="submit" class="btn btn-gossamer btn-medium prev-button">Precedenti</button>
+		    </form>
+		    <form th:action="@{/GoToAlbumPage}" method="get" th:if="${hasNext}">
+		        <input type="hidden" name="albumId" th:value="${albumId}" />
+		        <input type="hidden" name="pageNumber" th:value="${pageNumber != null ? pageNumber + 1 : 0}" />
+		        <button type="submit" class="btn btn-gossamer btn-medium next-button">Successive</button>
+		    </form>
+		</div>
+
+    </div>
+</body>
+</html>

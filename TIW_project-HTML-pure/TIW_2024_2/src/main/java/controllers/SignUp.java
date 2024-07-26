@@ -1,0 +1,224 @@
+package controllers;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.WebContext;
+
+import beans.User;
+import dao.AlbumDAO;
+import dao.UserDAO;
+import utils.ConnectionHandler;
+import utils.Message;
+import utils.PathHelper;
+import utils.TemplateHandler;
+
+/**
+ * Servlet implementation class SignUp
+ */
+@WebServlet("/SignUp")
+public class SignUp extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+	private TemplateEngine templateEngine;
+	private Connection connection = null;
+	
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public SignUp() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+    @Override
+    public void init() throws ServletException {
+    	
+    	ServletContext servletContext = getServletContext();
+		this.templateEngine = TemplateHandler.getEngine(servletContext, ".html");
+		this.connection = ConnectionHandler.getConnection(servletContext);
+    }
+    
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doPost(request, response);
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		//Gets the parameters of the request and verifies if they are in the correct format (length and syntax)
+		String email      = request.getParameter("email");
+		String username   = request.getParameter("username");
+		String password   = request.getParameter("password");
+		String repeatedPassword = request.getParameter("repeat_pwd");
+		
+		UserDAO userDAO = new UserDAO(connection);
+
+		Message returnedMessage = readyForRegistration(email, username, password, repeatedPassword, userDAO);
+		switch(returnedMessage.getResult()) {
+			case "error" -> {
+				request.setAttribute("error", returnedMessage.getText());
+				forward(request, response, PathHelper.goToErrorPage());
+				return;
+			}
+			case "warning" -> {
+				request.setAttribute("warning", returnedMessage.getText());
+				forward(request, response, PathHelper.goToSignUpPage());
+				return;
+
+			}
+			case "success" -> {
+				//Adding user's data to database and returning user's id automatically generated
+				int userId = 0;			
+				try {
+					//At this point the user is ready to be registered
+					userId = userDAO.registerUser(email, username, password);
+					
+				//If an error occurred during the process the user is redirected to errorPage
+				} catch (SQLException e) {
+					request.setAttribute("error", e.getMessage());
+					forward(request, response, PathHelper.goToErrorPage());
+					return;
+				}
+				
+				//In case the system filed to retrieve user's id it redirects to errorPage
+				if (userId == 0) {
+					request.setAttribute("error", "An error occured while retreving user's id");
+					forward(request, response, PathHelper.goToErrorPage());
+					return;
+
+				}
+				
+				//Creating the first album for the user that will contain all of his images
+				AlbumDAO albumDAO = new AlbumDAO(connection);
+				try {
+					albumDAO.createAlbum("allPhotos", userId);
+					
+				//If an error occurred during the process the user is redirected to errorPage
+				} catch (SQLException e) {
+					request.setAttribute("error", e.getMessage());
+					forward(request, response, PathHelper.goToErrorPage());
+					return;
+				}
+				
+				// Once the user is registered is redirected to the LoginPage
+				response.sendRedirect(getServletContext().getContextPath() + PathHelper.goToServlet("login"));
+			}
+		}
+	}
+	
+	private Message readyForRegistration(String email, String username, String password, String repeatedPassword, UserDAO userDAO) throws ServletException, IOException {
+		Message messageToReturn = new Message();
+				
+		//Verifying that there are no null parameters
+		if(email == null || username == null || password == null || repeatedPassword == null) {
+			messageToReturn.setResult("error");
+			messageToReturn.setText("Unfortunally some data is missing");
+			return messageToReturn;
+		}
+		
+		//Checking if the inserted email is actually a valid email address and assuring that its length is <= 100
+		if (!isAnEmail(email) || email.length()>100 || email.length() <= 0) {
+			messageToReturn.setResult("warning");
+			messageToReturn.setText("Invalid email address (a valid username has more than one character and less than 100)!");
+			return messageToReturn;
+		}
+				
+		//Checking if the inserted username string has correct length (1-20)
+		if (username.length() <= 0 || username.length() > 20 || containsSpecialCharacters(username)) {
+			messageToReturn.setResult("warning");
+			messageToReturn.setText("Invalid username (a valid username has more than one character, less than 20 and has no special character)!");
+			return messageToReturn;
+		}
+				
+		//Checking if the inserted strings (PASSWORD and REPEAT_PWD) have the correct length (1-10) and equal
+		if (password.length() <= 0 || password.length() > 10) {
+			messageToReturn.setResult("warning");
+			messageToReturn.setText("Invalid password (a valid password has more than one character and less than 10)!");
+			return messageToReturn;
+		}
+				
+		if (!password.equals(repeatedPassword)) {
+			messageToReturn.setResult("warning");
+			messageToReturn.setText("Password and repeat password field not equal!");
+			return messageToReturn;
+		}
+				
+		//Checking uniqueness of email
+		User user = null;
+		try {
+			user = userDAO.findUserByEmail(email);
+			
+		//If an error occurred during the process the user is redirected to errorPage
+		} catch (SQLException e) {
+			messageToReturn.setResult("error");
+			messageToReturn.setText(e.getMessage());
+			return messageToReturn;
+		}
+				
+		if(user != null) {
+			messageToReturn.setResult("warning");
+			messageToReturn.setText("Email already in use!");
+			return messageToReturn;
+		}
+				
+		//Checking uniqueness of username
+		try {
+			user = userDAO.findUserByUsername(username);
+		
+		//If an error occurred during the process the user is redirected to errorPage
+		} catch (SQLException e) {
+			messageToReturn.setResult("error");
+			messageToReturn.setText(e.getMessage());
+			return messageToReturn;
+		}
+				
+		if(user != null) {
+			messageToReturn.setResult("warning");
+			messageToReturn.setText("Username already taken");
+		
+			return messageToReturn;
+		}
+		
+		messageToReturn.setResult("success");
+		return messageToReturn;
+
+	}
+	
+private boolean isAnEmail(String emailAddress) {
+		String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+		
+	    Pattern pattern = Pattern.compile(EMAIL_REGEX);
+	    Matcher matcher = pattern.matcher(emailAddress);
+	    return matcher.matches();
+	}
+
+public static boolean containsSpecialCharacters(String input) {
+    String specialCharactersPattern = "[^a-zA-Z0-9]";
+
+    return input != null && input.matches(".*" + specialCharactersPattern + ".*");
+}
+	
+private void forward(HttpServletRequest request, HttpServletResponse response, String path) throws ServletException, IOException{
+		
+		ServletContext servletContext = getServletContext();
+		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+		templateEngine.process(path, ctx, response.getWriter());
+	}
+
+}

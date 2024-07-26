@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>HomePage</title>
+    <link rel="stylesheet" type="text/css" media="all" href="CSS/global.css" th:href="@{/CSS/global.css}" />
+    <link rel="stylesheet" type="text/css" href="CSS/homePage.css" th:href="@{/CSS/homePage.css}" />
+</head>
+<body>
+    <div class="header-div">    
+        <h1 class="header-title">Welcome to your HomePage, <span th:text="${session.currentUser.username}"></span></h1>
+        
+        <div class="header-icons">
+	         <a class="header-icon" th:href="@{/Logout}">
+	            <img src="Icons/logout.png" alt="Logout">
+	        </a>
+    	</div>
+    </div>
+
+    <div class="form-container">
+        <div class="upload-image form-box gossamer-div">
+            <h2>Upload New Image</h2>
+            <form method="POST" th:action="@{/UploadImage}" enctype="multipart/form-data">
+                <div class="form-row">
+		            <input type="file" id="imageUpload" name="image" accept="image/*" required>
+		            <label for="imageTitle">Image Title</label>
+		            <input type="text" id="imageTitle" name="title" maxlength="45" placeholder="Title (max 45 characters)" required>
+		        </div>
+                <div class="form-row">
+		            <label for="imageDescription">Image Description</label>
+		            <textarea id="imageDescription" name="description" maxlength="250" placeholder="Description (max 250 characters)"></textarea>
+		        </div>
+		        <button type="submit" class="btn centered-btn btn-gossamer btn-medium">Upload</button>
+            </form>
+            <div th:if="${warningUploadImage != null}" class="warning">
+                <p th:text="${warningUploadImage}"></p>
+            </div>
+        </div>
+
+        <div class="create-album form-box gossamer-div">
+            <h2>Create New Album</h2>
+            <div class="images-scrollbox">
+                <form method="POST" th:action="@{/CreateNewAlbum}">
+                    <div class="image-row" th:each="image : ${images}">
+                        <input type="checkbox" th:id="'image-' + ${image.id}" th:name="selectedImages" th:value="${image.id}" class="image-checkbox">
+                        <div class="image-info">
+                            <span th:text="${image.title}" class="image-title"></span>
+                            <span th:text="${image.id}" class="image-id"></span>
+                        </div>
+                    </div>
+                    <input type="text" name="albumTitle" placeholder="Album Title" maxlength="45" required>
+                    <button type="submit" class="btn btn-gossamer btn-small">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="albums-container">
+
+	    <div class="user-albums form-box gossamer-div">
+	        <h2>Your Albums</h2>
+	        <div class="album-container">
+	            <div class="albums">
+	                <div th:each="album, iterStat : ${myAlbums}" class="album">
+	                    <a th:href="@{/GoToAlbumPage(albumId=${album.getId()})}">
+	                        <img th:src="@{${iterStat.index == 0} ? 'Icons/album0.png' : 'Icons/album.png'}" class="album-icon">
+	                        <h3 th:text="${album.getTitle()}" class="album-title"></h3>
+	                    </a>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	
+	    <div class="others-albums form-box gossamer-div">
+	        <h2>Others Albums</h2>
+	        <div class="album-container">
+	            <div th:if="${othersAlbums.size() == 0}" class="no-albums">
+	                <p>There are no other albums to show</p>
+	            </div>
+	            <div class="albums" th:if="${othersAlbums.size() > 0}">
+	                <div th:each="album : ${othersAlbums}" class="album">
+	                    <a th:href="@{/GoToAlbumPage(albumId=${album.getId()})}">
+	                        <img src="Icons/album.png" class="album-icon">
+	                        <h3 th:text="${album.getTitle()}" class="album-title"></h3>
+	                        <p th:text="'by ' + ${album.getUserId()}" class="album-user"></p>
+	                    </a>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+    </div>
+	    
+
+</body>
+</html>

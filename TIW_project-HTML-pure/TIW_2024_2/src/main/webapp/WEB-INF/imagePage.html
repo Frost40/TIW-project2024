@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>Image Page</title>
+    <link rel="stylesheet" type="text/css" media="all" href="CSS/global.css" th:href="@{/CSS/global.css}" />
+    <link rel="stylesheet" media="all" type="text/css" href="CSS/imagePage.css" th:href="@{/CSS/imagePage.css}" />
+</head>
+<body>
+    <div class="header-div">
+        <h1 th:text="${image.title}" class="header-title"></h1>
+        <div class="header-icons">
+            <a class="header-icon" th:href="@{/GoToHomePage}">
+                <img src="Icons/home.png" alt="Home Page">
+            </a>
+            <a class="header-icon" th:href="@{/GoToAlbumPage(albumId=${albumId})}">
+                <img src="Icons/goToAlbum.png" alt="Album Page">
+            </a>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="image-container gossamer-div">
+            <img th:src="${image.path}" alt="Image" class="full-image">
+        </div>
+        
+        <div class="side-container">
+            <div class="info-container gossamer-div">
+                <h2 th:text="'Title: ' + ${image.title}"></h2>
+                <p th:text="'Created on: ' + ${image.creationDate}"></p>
+                <p th:text="'Description: ' + ${image.description}"></p>
+				<form class="delete-form" th:if="${canBeDeleted}" th:action="@{/DeleteImage}" method="post">
+                    <input type="hidden" name="imageId" th:value="${image.id}" />
+                    <button type="submit" class="btn btn-gossamer btn-medium">Delete Image</button>
+                </form>           
+            </div>
+            
+            <div class="comments-container gossamer-div">
+                <h3>Comments</h3>
+                <div class="comments-wrapper">
+                	<div class="comments" th:each="entry : ${comments}">
+                    	<p><strong th:text="${entry.key}"></strong>: <span th:text="${entry.value}"></span></p>
+                	</div>
+                </div>
+                <div class="comment-form">
+                    <form th:action="@{/AddComment}" method="post">
+                        <input type="hidden" name="imageId" th:value="${image.id}" />
+                        <input type="hidden" name="albumId" th:value="${albumId}" />
+						<textarea name="comment" rows="3" maxlength="150" placeholder="Add a comment"></textarea>
+                        <button type="submit" class="btn btn-gossamer btn-medium">Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
