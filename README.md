@@ -30,9 +30,7 @@ The application was initially developed in pure HTML and later extended with Jav
 - Apache Tomcat as the web server
 
 ## Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/image-manager.git
+1. Clone the repository
 2. Install and set up Apache Tomcat.
 3. Install and configure MySQL.
 4. Import the provided SQL scripts to set up the database.
